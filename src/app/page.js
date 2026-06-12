@@ -8,12 +8,28 @@ const ROLE_LABEL = { prefix: 'Préfixe', core: 'Nom principal', suffix: 'Suffixe
 const EXAMPLES = ['Tokyo', 'Kyoto', '金沢', 'Hiroshima', 'Shinjuku', 'Taitō', 'Nagasaki', '明治神宮', 'Fukuoka']
 
 // Maps/Citymapper collent souvent « Nom\nAdresse » ou « Nom · Type · Ville » —
-// on garde la 1re ligne utile (non-URL) et son 1er segment.
+// on garde la 1re ligne utile (non-URL) et son 1er segment. Pour les URLs Maps
+// reconnues, on essaie d'en extraire le nom du lieu.
+function extractFromMapsUrl(url) {
+  try {
+    const u = new URL(url)
+    const place = u.pathname.match(/\/maps\/place\/([^/@]+)/)
+    if (place) return decodeURIComponent(place[1]).replace(/\+/g, ' ').split(',')[0].trim()
+    const q = u.searchParams.get('q') || u.searchParams.get('query')
+    if (q) return q.split(',')[0].trim()
+  } catch {}
+  return ''
+}
+
 function firstUsefulLine(raw) {
   const s = (raw || '').trim()
   if (!s) return ''
   for (const line of s.split(/\n+/).map((l) => l.trim()).filter(Boolean)) {
-    if (/^https?:\/\//i.test(line)) continue
+    if (/^https?:\/\//i.test(line)) {
+      const fromUrl = extractFromMapsUrl(line)
+      if (fromUrl) return fromUrl
+      continue // lien court opaque (maps.app.goo.gl, goo.gl/maps…) → on ignore
+    }
     return line.split(/\s+[·•|]\s+/)[0].trim()
   }
   return ''
@@ -378,14 +394,23 @@ export default function NamaePage() {
       navigator.serviceWorker.register('/sw.js').catch(() => {})
     }
     const params = new URLSearchParams(window.location.search)
-    const payload = params.get('name') || params.get('text') || params.get('url') || ''
+    // Maps remplit parfois `text`, parfois `url`, parfois les deux — on
+    // concatène les 3 champs et on laisse firstUsefulLine trier.
+    const payload = [params.get('name'), params.get('text'), params.get('url')]
+      .filter(Boolean).join('\n')
     if (!payload) return
-    const name = firstUsefulLine(payload)
-    if (!name) return
     setTab('explore')
-    setQuery(name)
-    setSubmitted(name)
-    showToast(`Reçu : « ${name} »`)
+    const name = firstUsefulLine(payload)
+    if (name) {
+      setQuery(name)
+      setSubmitted(name)
+      showToast(`Reçu : « ${name} »`)
+    } else {
+      // Lien court opaque (maps.app.goo.gl) — on ne peut pas résoudre côté
+      // client. On bascule sur l'Explorer et on focus le champ.
+      showToast('Lien Maps reçu — tapez le nom du lieu dans le champ ↓')
+      setTimeout(() => document.getElementById('namae-input')?.focus(), 80)
+    }
     window.history.replaceState({}, '', window.location.pathname)
   }, [])
 
