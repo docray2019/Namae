@@ -5,7 +5,7 @@ import { CATEGORIES, LEARN_COMPONENTS, normalizeRomaji } from '@/lib/japan/compo
 import { decompose, mapEmbedUrl } from '@/lib/japan/parser'
 
 const ROLE_LABEL = { prefix: 'Préfixe', core: 'Nom principal', suffix: 'Suffixe' }
-const EXAMPLES = ['Tokyo', 'Kyoto', '金沢', 'Hiroshima', 'Shinjuku', 'Nagasaki', '明治神宮', 'Fukuoka']
+const EXAMPLES = ['Tokyo', 'Kyoto', '金沢', 'Hiroshima', 'Shinjuku', 'Taitō', 'Nagasaki', '明治神宮', 'Fukuoka']
 
 function catColor(comp) {
   return comp ? CATEGORIES[comp.cat].color : '#64748b'
