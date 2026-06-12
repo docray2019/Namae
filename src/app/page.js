@@ -134,6 +134,10 @@ function MapPicker({ runRef }) {
     let map = null
     let cancelled = false
     let debounce = null
+    // Liste des layers symboliques de la carte qui portent un texte (labels) —
+    // peuplée après le chargement du style. On l'utilise pour interroger
+    // uniquement les étiquettes effectivement rendues à l'écran.
+    let labelLayerIds = []
 
     async function ensureMaplibre() {
       if (window.maplibregl) return
@@ -172,10 +176,46 @@ function MapPicker({ runRef }) {
 
     function applyBilingualLabels() {
       const layers = map.getStyle().layers || []
+      const ids = []
       for (const layer of layers) {
         if (layer.type !== 'symbol') continue
         if (!layer.layout || !('text-field' in layer.layout)) continue
+        ids.push(layer.id)
         try { map.setLayoutProperty(layer.id, 'text-field', bilingualTextField()) } catch {}
+      }
+      labelLayerIds = ids
+    }
+
+    // Cherche dans les labels EFFECTIVEMENT rendus par MapLibre celui dont
+    // l'ancre est la plus proche du centre. On ignore les features sans
+    // géométrie de Point (routes, polygones administratifs) — ce sont des
+    // labels secondaires peu utiles à l'étymologie. Si la mire vise au beau
+    // milieu de Hiroshima alors que seul « 広島市 » est tracé, c'est ce
+    // label qu'on récupère — pas un quartier invisible.
+    function findVisibleLabelAtCenter() {
+      if (!labelLayerIds.length) return null
+      let features
+      try { features = map.queryRenderedFeatures({ layers: labelLayerIds }) }
+      catch { return null }
+      if (!features?.length) return null
+      const c = map.project(map.getCenter())
+      let best = null
+      let bestDist = Infinity
+      for (const f of features) {
+        const p = f.properties || {}
+        const ja = p['name:ja'] || p.name
+        if (!ja) continue
+        if (f.geometry?.type !== 'Point') continue
+        const px = map.project({ lng: f.geometry.coordinates[0], lat: f.geometry.coordinates[1] })
+        const dx = px.x - c.x, dy = px.y - c.y
+        const d = Math.hypot(dx, dy)
+        if (d < bestDist) { bestDist = d; best = f }
+      }
+      if (!best) return null
+      const p = best.properties || {}
+      return {
+        ja: p['name:ja'] || p.name,
+        en: p['name:en'] || p['name:latin'] || null,
       }
     }
 
@@ -201,18 +241,28 @@ function MapPicker({ runRef }) {
       })
       map.on('styledata', () => { if (map.isStyleLoaded()) applyBilingualLabels() })
 
-      // Au repos du geste, on identifie le lieu au centre (Nominatim, gratuit)
-      // et on stocke un candidat. On NE lance PAS l'analyse Opus tant que
-      // l'utilisateur n'a pas cliqué le bouton de confirmation.
+      // Au repos du geste, on identifie le lieu au centre. Stratégie en deux temps :
+      //   1) on regarde le label EFFECTIVEMENT rendu par MapLibre le plus proche
+      //      du centre — c'est ce que l'utilisateur voit. Pas d'appel réseau.
+      //   2) si rien de visible (zoom trop large, océan…), repli sur Nominatim.
+      // L'analyse Opus n'est jamais lancée tant que le bouton n'est pas cliqué.
       map.on('movestart', () => setCandidate(null))
       map.on('moveend', () => {
         clearTimeout(debounce)
         debounce = setTimeout(async () => {
+          // 1) Lecture des labels rendus
+          const visible = findVisibleLabelAtCenter()
+          if (visible) {
+            setCandidate(visible)
+            setHint(visible.en ? `📍 ${visible.ja} — ${visible.en}` : `📍 ${visible.ja}`)
+            return
+          }
+          // 2) Repli Nominatim
           const c = map.getCenter()
           const z = map.getZoom()
           setHint('Identification du lieu au centre…')
           const found = await reverseGeocode(c.lat, c.lng, z)
-          if (!found) { setHint('Aucun lieu nommé au centre — déplace ou zoome encore.'); setCandidate(null); return }
+          if (!found) { setHint('Aucun lieu nommé visible — déplace ou zoome encore.'); setCandidate(null); return }
           setCandidate({ ja: found.ja, en: found.en })
           setHint(found.en ? `📍 ${found.ja} — ${found.en}` : `📍 ${found.ja}`)
         }, 600)
