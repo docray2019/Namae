@@ -1,11 +1,36 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATEGORIES, LEARN_COMPONENTS, normalizeRomaji } from '@/lib/japan/components'
 import { decompose, mapEmbedUrl } from '@/lib/japan/parser'
 
 const ROLE_LABEL = { prefix: 'Préfixe', core: 'Nom principal', suffix: 'Suffixe' }
 const EXAMPLES = ['Tokyo', 'Kyoto', '金沢', 'Hiroshima', 'Shinjuku', 'Taitō', 'Nagasaki', '明治神宮', 'Fukuoka']
+const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+
+// Reverse-geocoding via Nominatim (OpenStreetMap) — libre, sans clé. On demande
+// le japonais (`accept-language=ja`) : pour les lieux où OSM a une étiquette
+// `name:ja`, on récupère directement les kanji prêts à décomposer.
+async function reverseGeocode(lat, lng, zoom) {
+  const z = Math.min(18, Math.max(10, Math.round(zoom)))
+  const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=${z}&accept-language=ja`
+  try {
+    const res = await fetch(url)
+    if (!res.ok) return null
+    const d = await res.json()
+    const a = d?.address || {}
+    return (
+      d?.name ||
+      a.attraction || a.tourism || a.shrine || a.temple ||
+      a.neighbourhood || a.suburb || a.quarter || a.city_district ||
+      a.town || a.village || a.city ||
+      ''
+    ) || null
+  } catch {
+    return null
+  }
+}
 
 // Maps/Citymapper collent souvent « Nom\nAdresse » ou « Nom · Type · Ville » —
 // on garde la 1re ligne utile (non-URL) et son 1er segment. Pour les URLs Maps
@@ -85,10 +110,96 @@ function KanjiCard({ comp, big, reading }) {
   )
 }
 
+// ── Carte interactive : l'utilisateur centre le lieu visé, on reverse-geocode
+//    le centre de la carte via Nominatim (libellé japonais quand dispo). Leaflet
+//    est chargé à la volée depuis unpkg (libre, pas de clé, pas de npm dep).
+function MapPicker({ runRef }) {
+  const containerRef = useRef(null)
+  const [loading, setLoading] = useState(true)
+  const [hint, setHint] = useState('Pinch pour zoomer, glisse pour déplacer — le lieu au centre est analysé.')
+
+  useEffect(() => {
+    let map = null
+    let cancelled = false
+    let debounce = null
+    let lastQuery = null
+
+    async function ensureLeaflet() {
+      if (window.L) return
+      if (!document.getElementById('leaflet-css')) {
+        const css = document.createElement('link')
+        css.id = 'leaflet-css'
+        css.rel = 'stylesheet'
+        css.href = LEAFLET_CSS
+        document.head.appendChild(css)
+      }
+      await new Promise((resolve, reject) => {
+        const existing = document.getElementById('leaflet-js')
+        if (existing) { existing.addEventListener('load', resolve); existing.addEventListener('error', reject); return }
+        const s = document.createElement('script')
+        s.id = 'leaflet-js'
+        s.src = LEAFLET_JS
+        s.onload = resolve
+        s.onerror = reject
+        document.head.appendChild(s)
+      })
+    }
+
+    async function init() {
+      try {
+        await ensureLeaflet()
+      } catch {
+        if (!cancelled) setHint('Impossible de charger la carte (réseau ?).')
+        return
+      }
+      if (cancelled || !containerRef.current) return
+      const L = window.L
+      map = L.map(containerRef.current, { center: [35.6762, 139.6503], zoom: 11, zoomControl: true })
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap',
+      }).addTo(map)
+      setLoading(false)
+
+      map.on('moveend', () => {
+        clearTimeout(debounce)
+        debounce = setTimeout(async () => {
+          const c = map.getCenter()
+          const z = map.getZoom()
+          setHint('Identification du lieu au centre…')
+          const name = await reverseGeocode(c.lat, c.lng, z)
+          if (!name) { setHint('Aucun lieu nommé au centre — déplace ou zoome encore.'); return }
+          const key = name + '@' + z
+          if (key === lastQuery) { setHint(`📍 ${name}`); return }
+          lastQuery = key
+          setHint(`📍 ${name}`)
+          runRef.current?.(name)
+        }, 600)
+      })
+    }
+
+    init()
+    return () => {
+      cancelled = true
+      clearTimeout(debounce)
+      map?.remove()
+    }
+  }, [runRef])
+
+  return (
+    <div className="map-picker">
+      <div ref={containerRef} className="map-picker-canvas" />
+      <div className="map-picker-crosshair" aria-hidden>⊕</div>
+      {loading && <div className="map-picker-loading">Chargement de la carte…</div>}
+      <div className="map-picker-hint">{hint}</div>
+    </div>
+  )
+}
+
 // ════════════════════════════════════════════════════════════════════════
 //  Mode EXPLORER
 // ════════════════════════════════════════════════════════════════════════
-function Explorer({ query, setQuery, submitted, run }) {
+function Explorer({ query, setQuery, submitted, run, runRef }) {
   const result = useMemo(() => decompose(submitted), [submitted])
   const recognized = useMemo(() => {
     if (!result) return []
@@ -102,9 +213,10 @@ function Explorer({ query, setQuery, submitted, run }) {
 
   return (
     <div>
+      <MapPicker runRef={runRef} />
       <p className="howto">
-        💡 Copiez le nom d’un lieu depuis <strong>Google Maps</strong> ou <strong>Citymapper</strong>,
-        puis touchez le bouton <strong>📋 Coller</strong> en haut à droite — ou collez-le ci-dessous.
+        💡 Ou colle le nom d’un lieu depuis <strong>Google Maps</strong> ci-dessous
+        (le bouton <strong>📋 Coller</strong> en haut à droite résout aussi les liens Maps).
       </p>
       <div className="search">
         <input
@@ -358,6 +470,9 @@ export default function NamaePage() {
   })
   const [submitted, setSubmitted] = useState(query)
   const [toast, setToast] = useState(null)
+  // Référence stable vers run(), pour que les handlers Leaflet (créés une seule
+  // fois au montage) appellent toujours la dernière version.
+  const runRef = useRef(null)
 
   function showToast(msg) {
     setToast(msg)
@@ -396,6 +511,7 @@ export default function NamaePage() {
 
     setSubmitted(v)
   }
+  runRef.current = run
 
   // Parcours : l'utilisateur a copié un nom dans Maps/Citymapper → on le colle et on l'analyse.
   async function pasteAndAnalyze() {
@@ -482,7 +598,7 @@ export default function NamaePage() {
         </nav>
 
         <main className="main">
-          {tab === 'explore' && <Explorer query={query} setQuery={setQuery} submitted={submitted} run={run} />}
+          {tab === 'explore' && <Explorer query={query} setQuery={setQuery} submitted={submitted} run={run} runRef={runRef} />}
           {tab === 'learn' && <Learn />}
           {tab === 'quiz' && <Quiz />}
         </main>
@@ -550,6 +666,30 @@ const CSS = `
   border-radius: 12px; padding: 12px 16px; margin: 0 0 16px;
 }
 .howto strong { color: #f9a8d4; font-weight: 600; }
+
+/* Sélecteur de lieu par carte (Leaflet + Nominatim) */
+.map-picker { position: relative; margin: 0 0 16px; }
+.map-picker-canvas {
+  width: 100%; height: 320px;
+  border: 1px solid #2a3a54; border-radius: 14px; overflow: hidden;
+  background: #161e2e;
+}
+.map-picker-canvas .leaflet-tile-pane { filter: brightness(0.75) saturate(0.85); }
+.map-picker-crosshair {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 28px; color: #f472b6; font-weight: 700;
+  text-shadow: 0 0 4px #0f1623, 0 0 8px #0f1623;
+  pointer-events: none; z-index: 500; user-select: none;
+}
+.map-picker-loading {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  font-size: 13px; color: #94a3b8;
+}
+.map-picker-hint {
+  font-size: 12.5px; color: #94a3b8; line-height: 1.5;
+  margin-top: 8px; padding: 0 4px;
+}
 
 /* Recherche */
 .search { display: flex; gap: 10px; margin-bottom: 14px; }
