@@ -11,6 +11,7 @@ import {
   COMPONENTS,
   GAZETTEER,
   KANJI_MAP,
+  KANJI_TO_READINGS,
   ROMAJI_PREFIXES,
   ROMAJI_SUFFIXES,
   gazetteerEntry,
@@ -162,7 +163,10 @@ export function decompose(rawInput) {
   const script = detectScript(input)
 
   if (hasKanji(input)) {
-    return { input, script, ...decomposeKanji(input) }
+    // Lectures contextuelles connues pour ce composé (台東区 → tai-tō-ku, etc.).
+    const kanjiOnly = [...input].filter((ch) => KANJI_RE.test(ch)).join('')
+    const readings = KANJI_TO_READINGS.get(input) || KANJI_TO_READINGS.get(kanjiOnly)
+    return { input, script, ...decomposeKanji(input, readings) }
   }
 
   // Lieu célèbre saisi en romaji → on résout vers ses kanji pour une étymologie exacte.

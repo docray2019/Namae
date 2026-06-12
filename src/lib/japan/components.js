@@ -356,6 +356,8 @@ export const GAZETTEER = {
   marunouchi:   { k: '丸の内', r: ['maru', 'uchi'] },
   shimokitazawa:{ k: '下北沢', r: ['shimo', 'kita', 'zawa'] },
   kichijoji:    { k: '吉祥寺', r: ['kichi', 'jō', 'ji'] },
+  taito:        { k: '台東',   r: ['tai', 'tō'] },
+  taitoku:      { k: '台東区', r: ['tai', 'tō', 'ku'] },
   nagano:       { k: '長野',   r: ['naga', 'no'] },
   nagasaki:     { k: '長崎',   r: ['naga', 'saki'] },
   niigata:      { k: '新潟',   r: ['nii', 'gata'] },
@@ -400,6 +402,17 @@ export function gazetteerEntry(value) {
   if (typeof value === 'string') return { k: value, r: undefined }
   return value
 }
+
+// Index inverse kanji → lectures contextuelles, pour que les saisies en kanji
+// (ex. 台東区, 東京) profitent aussi des lectures dédiées au composé.
+export const KANJI_TO_READINGS = (() => {
+  const m = new Map()
+  for (const v of Object.values(GAZETTEER)) {
+    const e = gazetteerEntry(v)
+    if (e && e.r && !m.has(e.k)) m.set(e.k, e.r)
+  }
+  return m
+})()
 
 // ── Index de recherche ─────────────────────────────────────────────────────
 
