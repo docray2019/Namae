@@ -365,10 +365,35 @@ export default function NamaePage() {
     showToast._t = window.setTimeout(() => setToast(null), 3600)
   }
 
+  function isMapsUrl(s) {
+    return /^https?:\/\/(maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.com|www\.google\.com\/maps|g\.co\/kgs)/i.test(s)
+  }
+
   function run(value) {
     const v = (value ?? query).trim()
     if (!v) return
     setQuery(v)
+
+    // Cas spécial : URL Maps collée dans le champ — on la résout côté serveur
+    // avant d'analyser. Évite à l'utilisateur d'avoir à extraire le nom à la main.
+    if (isMapsUrl(v)) {
+      setSubmitted('') // n'affiche pas l'analyse de l'URL pendant la résolution
+      showToast('Résolution du lien Maps…')
+      fetch(`/api/resolve-maps?u=${encodeURIComponent(v)}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (data?.name) {
+            setQuery(data.name)
+            setSubmitted(data.name)
+            showToast(`Résolu : « ${data.name} »`)
+          } else {
+            showToast('Lien non résolu — tape le nom à la main.')
+          }
+        })
+        .catch(() => showToast('Échec de la résolution — réessaie ou tape le nom.'))
+      return
+    }
+
     setSubmitted(v)
   }
 
@@ -377,11 +402,17 @@ export default function NamaePage() {
     setTab('explore')
     try {
       if (!navigator.clipboard || !navigator.clipboard.readText) throw new Error('unsupported')
-      const text = await navigator.clipboard.readText()
+      const text = (await navigator.clipboard.readText()) || ''
       const name = firstUsefulLine(text)
-      if (!name) { showToast('Presse-papiers vide — copiez d’abord un nom de lieu.'); return }
-      run(name)
-      showToast(`Collé : « ${name} »`)
+      if (name) {
+        run(name)
+        showToast(`Collé : « ${name} »`)
+        return
+      }
+      // Pas de nom direct — peut-être une URL Maps courte ? run() saura la résoudre.
+      const urlMatch = text.match(/https?:\/\/(maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.com|www\.google\.com\/maps|g\.co\/kgs)\S*/i)
+      if (urlMatch) { run(urlMatch[0]); return }
+      showToast('Presse-papiers : aucun nom de lieu détecté.')
     } catch {
       showToast('Autorisez le presse-papiers, ou collez dans le champ (Ctrl/Cmd + V).')
       const el = document.getElementById('namae-input')
@@ -406,7 +437,6 @@ export default function NamaePage() {
     setTab('explore')
 
     const cleanUrl = () => window.history.replaceState({}, '', window.location.pathname)
-    const accept = (name) => { setQuery(name); setSubmitted(name); showToast(`Reçu : « ${name} »`) }
     const focusInput = () => {
       showToast('Lien Maps reçu — tapez le nom du lieu dans le champ ↓')
       setTimeout(() => document.getElementById('namae-input')?.focus(), 80)
@@ -414,20 +444,11 @@ export default function NamaePage() {
 
     // 1) Nom trouvable côté client (titre / texte / URL longue Maps) → on lance.
     const name = firstUsefulLine(payload)
-    if (name) { accept(name); cleanUrl(); return }
+    if (name) { run(name); showToast(`Reçu : « ${name} »`); cleanUrl(); return }
 
-    // 2) Lien court opaque (maps.app.goo.gl) → on demande au serveur de suivre
-    //    la redirection vers l'URL longue et d'en extraire le nom.
+    // 2) URL Maps courte → on délègue à run() qui appelle le résolveur serveur.
     const urlMatch = payload.match(/https?:\/\/\S+/i)
-    if (urlMatch) {
-      showToast('Résolution du lien Maps…')
-      fetch(`/api/resolve-maps?u=${encodeURIComponent(urlMatch[0])}`)
-        .then((r) => (r.ok ? r.json() : null))
-        .then((data) => { data?.name ? accept(data.name) : focusInput() })
-        .catch(() => focusInput())
-        .finally(cleanUrl)
-      return
-    }
+    if (urlMatch) { run(urlMatch[0]); cleanUrl(); return }
 
     // 3) Rien d'exploitable → fallback champ texte.
     focusInput()
