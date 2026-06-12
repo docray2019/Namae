@@ -237,20 +237,80 @@ function MapPicker({ runRef }) {
   )
 }
 
+const HAS_KANJI = /[㐀-鿿豈-﫿]/
+
+const ROLE_COLOR = { prefix: '#fb923c', core: '#f472b6', suffix: '#2dd4bf' }
+
+// Pastille compacte d'un segment renvoyé par l'IA (préfixe / nom principal / suffixe).
+function AiSegment({ part }) {
+  const color = ROLE_COLOR[part.role] || '#64748b'
+  return (
+    <div className="seg" style={{ borderColor: color }}>
+      <div className="seg-role" style={{ color }}>{ROLE_LABEL[part.role] || part.role}</div>
+      <div className="seg-kanji" style={{ color }}>{part.text}</div>
+      <div className="seg-reading">{part.reading}</div>
+      <div className="seg-fr">{part.fr}</div>
+    </div>
+  )
+}
+
+// Fiche détaillée d'un segment, avec note pédagogique de l'IA.
+function AiPartCard({ part }) {
+  const color = ROLE_COLOR[part.role] || '#64748b'
+  return (
+    <div className="kcard" style={{ borderColor: color }}>
+      <div className="kcard-glyph" style={{ color }}>{part.text}</div>
+      <div className="kcard-body">
+        <div className="kcard-top">
+          <span className="kcard-romaji">{part.reading}</span>
+          <span className="kcard-cat" style={{ background: color }}>{ROLE_LABEL[part.role] || part.role}</span>
+        </div>
+        <div className="kcard-fr">{part.fr}</div>
+        {part.note && <div className="kcard-note">{part.note}</div>}
+      </div>
+    </div>
+  )
+}
+
 // ════════════════════════════════════════════════════════════════════════
 //  Mode EXPLORER
 // ════════════════════════════════════════════════════════════════════════
 function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef }) {
-  const result = useMemo(() => decompose(submitted), [submitted])
-  const recognized = useMemo(() => {
-    if (!result) return []
-    const seen = new Set()
-    const list = []
-    for (const p of result.parts) {
-      if (p.comp && !seen.has(p.comp.k)) { seen.add(p.comp.k); list.push(p) }
-    }
-    return list
-  }, [result])
+  // L'analyse étymologique est déléguée à un appel serveur (Claude Opus 4.7).
+  // On envoie kanji + latin séparés quand on les a (typiquement depuis la carte
+  // via Nominatim), sinon on devine d'après le script de l'entrée.
+  const [analysis, setAnalysis] = useState({ loading: false, data: null, error: null })
+
+  useEffect(() => {
+    if (!submitted) { setAnalysis({ loading: false, data: null, error: null }); return }
+    const looksKanji = HAS_KANJI.test(submitted)
+    const body = looksKanji
+      ? { kanji: submitted, latin: submittedLatin || null }
+      : { kanji: null, latin: submittedLatin || submitted }
+
+    const controller = new AbortController()
+    setAnalysis({ loading: true, data: null, error: null })
+    fetch('/api/etymology', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    })
+      .then(async (r) => {
+        const j = await r.json().catch(() => null)
+        if (!r.ok || !j) throw new Error(j?.message || j?.error || `HTTP ${r.status}`)
+        if (j.error) throw new Error(j.message || j.error)
+        return j
+      })
+      .then((data) => setAnalysis({ loading: false, data, error: null }))
+      .catch((err) => {
+        if (err.name === 'AbortError') return
+        setAnalysis({ loading: false, data: null, error: err.message || 'Erreur inconnue' })
+      })
+    return () => controller.abort()
+  }, [submitted, submittedLatin])
+
+  const data = analysis.data
 
   return (
     <div>
@@ -278,53 +338,62 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef }) {
         ))}
       </div>
 
-      {result && (
+      {analysis.loading && (
+        <div className="card ai-loading">
+          <div className="ai-spinner" aria-hidden />
+          <span>Analyse étymologique en cours… (Claude Opus 4.7)</span>
+        </div>
+      )}
+
+      {analysis.error && (
+        <div className="card ai-error">
+          <strong>Erreur d’analyse</strong> — {analysis.error}
+          <div className="ai-error-hint">
+            Vérifie que <code>ANTHROPIC_API_KEY</code> est bien configurée dans Vercel → Settings → Environment Variables, puis réessaie.
+          </div>
+        </div>
+      )}
+
+      {data && (
         <>
           <div className="card">
             <div className="card-head">
               <span className="card-title">
-                {result.input}
-                {result.resolvedKanji && <span className="resolved"> → {result.resolvedKanji}</span>}
-                {submittedLatin && !result.resolvedKanji && (
-                  <span className="latin"> — {submittedLatin}</span>
-                )}
+                {data.kanji || submitted}
+                {data.romaji && <span className="latin"> — {data.romaji}</span>}
               </span>
-              <span className="card-sub">
-                {result.recognized > 0
-                  ? `${result.recognized} composant${result.recognized > 1 ? 's' : ''} reconnu${result.recognized > 1 ? 's' : ''}`
-                  : 'aucun composant reconnu'}
-              </span>
+              <span className="card-sub">{data.parts?.length || 0} segment{(data.parts?.length || 0) > 1 ? 's' : ''} analysé{(data.parts?.length || 0) > 1 ? 's' : ''}</span>
             </div>
+
+            {data.short_fr && <p className="ai-short">{data.short_fr}</p>}
 
             <div className="segments">
-              {result.parts.map((p, i) => (
-                <Segment key={i} part={p} />
+              {(data.parts || []).map((p, i) => (
+                <AiSegment key={i} part={p} />
               ))}
             </div>
-
-            {recognized.length === 0 && (
-              <p className="empty">
-                Aucun préfixe ni suffixe connu n’a été repéré. Essayez l’écriture en kanji
-                (ex. <button className="inline-ex" onClick={() => run('渋谷')}>渋谷</button>) ou un
-                autre lieu.
-              </p>
-            )}
           </div>
 
-          {recognized.length > 0 && (
+          {(data.parts || []).length > 0 && (
             <div className="details">
-              <h3 className="section-h">Idéogrammes & étymologie</h3>
-              {recognized.map((p, i) => (
-                <div key={i}>
-                  <KanjiCard comp={p.comp} big reading={p.reading} />
-                  {p.alts.length > 0 && (
-                    <div className="alts">
-                      Autres lectures possibles de « {p.comp.romaji[0]} » :{' '}
-                      {p.alts.map((a) => `${a.k} (${a.fr.split(',')[0]})`).join(' · ')}
-                    </div>
-                  )}
-                </div>
+              <h3 className="section-h">Décomposition détaillée</h3>
+              {data.parts.map((p, i) => (
+                <AiPartCard key={i} part={p} />
               ))}
+            </div>
+          )}
+
+          {data.etymology_fr && (
+            <div className="ai-block">
+              <h3 className="section-h">Étymologie</h3>
+              <p className="ai-prose">{data.etymology_fr}</p>
+            </div>
+          )}
+
+          {data.notable && (
+            <div className="ai-block">
+              <h3 className="section-h">À noter</h3>
+              <p className="ai-prose">{data.notable}</p>
             </div>
           )}
 
@@ -333,17 +402,17 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef }) {
             <iframe
               key={submitted}
               className="map"
-              title={`Carte de ${result.input}`}
-              src={mapEmbedUrl(result.resolvedKanji || result.input)}
+              title={`Carte de ${data.kanji || submitted}`}
+              src={mapEmbedUrl(data.kanji || submitted)}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
             />
           </div>
 
           <p className="disclaimer">
-            ⚠️ Outil pédagogique. La toponymie japonaise est souvent ambiguë (lectures
-            multiples, rendaku) : la décomposition proposée est une <em>meilleure
-            interprétation</em>, pas une vérité unique.
+            ⚠️ Outil pédagogique. Analyse étymologique générée par <strong>Claude Opus 4.7</strong>.
+            La toponymie japonaise est souvent ambiguë : la décomposition proposée est une <em>meilleure
+            interprétation</em>, pas une vérité unique. Recoupe avec une source académique pour les usages sérieux.
           </p>
         </>
       )}
@@ -808,6 +877,27 @@ const CSS = `
 .kcard-ex { font-size: 13px; color: #cbd5e1; margin-bottom: 4px; }
 .kcard-meta { font-size: 12px; color: #64748b; }
 .alts { font-size: 12.5px; color: #94a3b8; margin: -4px 0 12px 8px; padding-left: 12px; border-left: 2px solid #2a3a54; }
+
+/* Blocs spécifiques à l'analyse IA */
+.ai-short { font-family: 'DM Serif Display', serif; color: #f9a8d4; font-size: 18px; line-height: 1.5; margin: 0 0 18px; font-style: italic; }
+.ai-block { margin-bottom: 24px; }
+.ai-prose { font-size: 14.5px; color: #e8edf5; line-height: 1.65; margin: 0; }
+.ai-loading {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 14px; color: #94a3b8;
+}
+.ai-spinner {
+  width: 16px; height: 16px;
+  border: 2px solid #2a3a54; border-top-color: #f472b6; border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.ai-error {
+  border-color: #f87171 !important; background: rgba(248,113,113,.08);
+  font-size: 14px; color: #fca5a5; line-height: 1.55;
+}
+.ai-error code { background: rgba(15,22,35,.6); padding: 1px 6px; border-radius: 4px; font-size: 12.5px; }
+.ai-error-hint { font-size: 12.5px; color: #94a3b8; margin-top: 8px; line-height: 1.5; }
 
 /* Carte */
 .map-wrap { margin-bottom: 20px; }
