@@ -401,15 +401,9 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef }) {
       <MapPicker runRef={runRef} />
       <p className="howto">
         💡 Centre un lieu sur la carte et clique <strong>« Analyser ce lieu »</strong>.
-        Tu peux aussi piocher un exemple ci-dessous, ou utiliser le bouton <strong>📋 Coller</strong>
-        en haut à droite (pour un nom copié depuis Google Maps).
+        Tu peux aussi utiliser le bouton <strong>📋 Coller</strong> en haut à droite
+        (pour un nom copié depuis Google Maps).
       </p>
-
-      <div className="chips">
-        {EXAMPLES.map((ex) => (
-          <button key={ex} className="chip" onClick={() => run(ex)}>{ex}</button>
-        ))}
-      </div>
 
       {analysis.loading && (
         <div className="card ai-loading">
