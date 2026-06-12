@@ -1,0 +1,28 @@
+{
+  "name": "Namae 名前 — Étymologie des lieux japonais",
+  "short_name": "Namae",
+  "description": "Décomposez les noms de lieux japonais en préfixe, nom principal et suffixe.",
+  "lang": "fr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f1623",
+  "theme_color": "#0f1623",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "params": {
+      "title": "name",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}

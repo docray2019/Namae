@@ -1,11 +1,23 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { CATEGORIES, LEARN_COMPONENTS, normalizeRomaji } from '@/lib/japan/components'
 import { decompose, mapEmbedUrl } from '@/lib/japan/parser'
 
 const ROLE_LABEL = { prefix: 'Préfixe', core: 'Nom principal', suffix: 'Suffixe' }
 const EXAMPLES = ['Tokyo', 'Kyoto', '金沢', 'Hiroshima', 'Shinjuku', 'Taitō', 'Nagasaki', '明治神宮', 'Fukuoka']
+
+// Maps/Citymapper collent souvent « Nom\nAdresse » ou « Nom · Type · Ville » —
+// on garde la 1re ligne utile (non-URL) et son 1er segment.
+function firstUsefulLine(raw) {
+  const s = (raw || '').trim()
+  if (!s) return ''
+  for (const line of s.split(/\n+/).map((l) => l.trim()).filter(Boolean)) {
+    if (/^https?:\/\//i.test(line)) continue
+    return line.split(/\s+[·•|]\s+/)[0].trim()
+  }
+  return ''
+}
 
 function catColor(comp) {
   return comp ? CATEGORIES[comp.cat].color : '#64748b'
@@ -344,8 +356,7 @@ export default function NamaePage() {
     try {
       if (!navigator.clipboard || !navigator.clipboard.readText) throw new Error('unsupported')
       const text = await navigator.clipboard.readText()
-      // Maps/Citymapper collent parfois « Nom\nAdresse » : on garde la 1re ligne utile.
-      const name = (text || '').split('\n').map((s) => s.trim()).filter(Boolean)[0] || ''
+      const name = firstUsefulLine(text)
       if (!name) { showToast('Presse-papiers vide — copiez d’abord un nom de lieu.'); return }
       run(name)
       showToast(`Collé : « ${name} »`)
@@ -355,6 +366,28 @@ export default function NamaePage() {
       if (el) el.focus()
     }
   }
+
+  // Web Share Target + PWA :
+  //   • Enregistre le service worker (requis pour rendre l'app installable, donc
+  //     pour apparaître dans la share sheet du système).
+  //   • Si l'app a été ouverte via un partage (URL `?name=…&text=…&url=…`),
+  //     extrait le nom du lieu et lance l'analyse — puis nettoie l'URL pour
+  //     que recharger ne re-déclenche pas.
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {})
+    }
+    const params = new URLSearchParams(window.location.search)
+    const payload = params.get('name') || params.get('text') || params.get('url') || ''
+    if (!payload) return
+    const name = firstUsefulLine(payload)
+    if (!name) return
+    setTab('explore')
+    setQuery(name)
+    setSubmitted(name)
+    showToast(`Reçu : « ${name} »`)
+    window.history.replaceState({}, '', window.location.pathname)
+  }, [])
 
   return (
     <>
