@@ -877,11 +877,350 @@ function Quiz() {
 }
 
 // ════════════════════════════════════════════════════════════════════════
-//  Mode LECTURES — explication kun'yomi / on'yomi, exemplifiée sur 海 + Hokkaidō
+//  Mode LECTURES — hub avec 5 sous-pages : Kanji, Hiragana, Katakana, Romaji, Kun↔On
 // ════════════════════════════════════════════════════════════════════════
+const READINGS_SUBPAGES = [
+  { id: 'kanji',    label: 'Kanji',       jp: '漢字' },
+  { id: 'hiragana', label: 'Hiragana',    jp: 'ひらがな' },
+  { id: 'katakana', label: 'Katakana',    jp: 'カタカナ' },
+  { id: 'romaji',   label: 'Rōmaji',      jp: 'Aa' },
+  { id: 'kunon',    label: 'Kun ↔ On',    jp: '訓・音' },
+]
+
 function ReadingsExplainer() {
+  const [sub, setSub] = useState('kanji')
   return (
     <div className="readings-page">
+      <nav className="readings-subnav">
+        {READINGS_SUBPAGES.map((p) => (
+          <button
+            key={p.id}
+            className={`rsn ${sub === p.id ? 'on' : ''}`}
+            onClick={() => setSub(p.id)}
+          >
+            <span className="rsn-jp">{p.jp}</span>
+            <span className="rsn-fr">{p.label}</span>
+          </button>
+        ))}
+      </nav>
+      {sub === 'kanji' && <KanjiPage onGoTo={setSub} />}
+      {sub === 'hiragana' && <HiraganaPage />}
+      {sub === 'katakana' && <KatakanaPage />}
+      {sub === 'romaji' && <RomajiPage />}
+      {sub === 'kunon' && <KunOnPage />}
+    </div>
+  )
+}
+
+// ── Sous-page : KANJI ──────────────────────────────────────────────────
+function KanjiPage({ onGoTo }) {
+  return (
+    <>
+      <h2 className="readings-title">Les kanji <span className="readings-jp">漢字</span></h2>
+      <p className="readings-lede">
+        Les kanji sont les caractères chinois importés au Japon vers le Ve siècle.
+        Chaque kanji porte un <strong>sens</strong> (et plusieurs lectures).
+        Ce sont eux qu’on décompose dans l’<em>Explorer</em> pour comprendre
+        l’étymologie d’un nom de lieu.
+      </p>
+
+      <section className="readings-section">
+        <h3 className="readings-h">L’essentiel en chiffres</h3>
+        <div className="stats-grid">
+          <div className="stat"><div className="stat-num">~50 000</div><div className="stat-label">kanji recensés au total</div></div>
+          <div className="stat"><div className="stat-num">2 136</div><div className="stat-label">jōyō kanji (« usage courant », enseignés à l’école)</div></div>
+          <div className="stat"><div className="stat-num">~2 500</div><div className="stat-label">suffisent pour lire un journal</div></div>
+          <div className="stat"><div className="stat-num">~1 000</div><div className="stat-label">appris d’ici la fin du primaire (kyōiku kanji)</div></div>
+        </div>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">Un kanji = un sens, pas un son</h3>
+        <p>
+          Contrairement à l’alphabet latin où chaque lettre transcrit un son, un kanji
+          transcrit avant tout un <strong>concept</strong>. La même idée s’écrit pareil
+          mais peut se prononcer de plusieurs façons (voir <button className="inline-link" onClick={() => onGoTo?.('kunon')}>Kun ↔ On</button>).
+        </p>
+        <div className="kanji-pictograms">
+          <div className="kp-card"><div className="kp-glyph">山</div><div className="kp-rom">yama / san</div><div className="kp-fr">montagne</div><div className="kp-note">trois pics stylisés</div></div>
+          <div className="kp-card"><div className="kp-glyph">川</div><div className="kp-rom">kawa / sen</div><div className="kp-fr">rivière</div><div className="kp-note">trois traits d’eau qui coulent</div></div>
+          <div className="kp-card"><div className="kp-glyph">木</div><div className="kp-rom">ki / boku</div><div className="kp-fr">arbre</div><div className="kp-note">un tronc et des branches</div></div>
+          <div className="kp-card"><div className="kp-glyph">日</div><div className="kp-rom">hi / nichi</div><div className="kp-fr">soleil, jour</div><div className="kp-note">un disque avec un point au centre</div></div>
+        </div>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">Composition : empiler le sens</h3>
+        <p>
+          Un kanji complexe est souvent composé de plusieurs <strong>radicaux</strong> qui
+          empilent leur sens. Le radical principal donne la famille sémantique, les autres
+          précisent. Exemple le plus connu :
+        </p>
+        <div className="combo-flow">
+          <div className="combo-step"><div className="combo-glyph">木</div><div className="combo-label">arbre</div></div>
+          <div className="combo-arrow">→</div>
+          <div className="combo-step"><div className="combo-glyph">林</div><div className="combo-label">bois (2 arbres)</div></div>
+          <div className="combo-arrow">→</div>
+          <div className="combo-step"><div className="combo-glyph">森</div><div className="combo-label">forêt (3 arbres)</div></div>
+        </div>
+        <p>
+          Et avec d’autres radicaux : 休 = personne (亻) + arbre (木) = « se reposer » (sous un arbre).
+          La logique visuelle est souvent transparente quand on connaît le radical principal — c’est
+          ce qui rend l’apprentissage des kanji moins arbitraire qu’il n’en a l’air.
+        </p>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">Et pour les noms de lieux ?</h3>
+        <p>
+          La plupart des toponymes japonais combinent 2 à 4 kanji qui décrivaient à l’origine
+          le terrain (vallée, plaine, rivière), la végétation, une direction, ou une fonction
+          (temple, port, château). Notre <em>Explorer</em> demande à Claude Opus 4.7 de
+          décomposer le nom et d’expliquer le rôle de chaque kanji.
+        </p>
+        <ul className="ex-list">
+          <li><span className="ex-jp">渋谷</span> <strong>Shibuya</strong> — 渋 « âpre » + 谷 « vallée »</li>
+          <li><span className="ex-jp">金沢</span> <strong>Kanazawa</strong> — 金 « or » + 沢 « marais »</li>
+          <li><span className="ex-jp">広島</span> <strong>Hiroshima</strong> — 広 « large » + 島 « île »</li>
+        </ul>
+      </section>
+    </>
+  )
+}
+
+// ── Sous-page : HIRAGANA ───────────────────────────────────────────────
+const HIRAGANA = [
+  ['あ a','い i','う u','え e','お o'],
+  ['か ka','き ki','く ku','け ke','こ ko'],
+  ['さ sa','し shi','す su','せ se','そ so'],
+  ['た ta','ち chi','つ tsu','て te','と to'],
+  ['な na','に ni','ぬ nu','ね ne','の no'],
+  ['は ha','ひ hi','ふ fu','へ he','ほ ho'],
+  ['ま ma','み mi','む mu','め me','も mo'],
+  ['や ya','—','ゆ yu','—','よ yo'],
+  ['ら ra','り ri','る ru','れ re','ろ ro'],
+  ['わ wa','—','—','—','を wo'],
+  ['ん n','','','',''],
+]
+
+function HiraganaPage() {
+  return (
+    <>
+      <h2 className="readings-title">Les hiragana <span className="readings-jp">ひらがな</span></h2>
+      <p className="readings-lede">
+        Les hiragana sont un <strong>syllabaire phonétique</strong> japonais — 46 signes de base,
+        chacun représente une syllabe (a, ka, shi, mu…). On les utilise pour la grammaire,
+        les mots japonais sans kanji, et pour donner la lecture d’un kanji (furigana).
+      </p>
+
+      <section className="readings-section">
+        <h3 className="readings-h">D’où viennent-ils ?</h3>
+        <p>
+          Les hiragana sont nés vers le IXe siècle de la <strong>simplification cursive de kanji entiers</strong>
+          utilisés pour leur valeur phonétique. Par exemple ひ (hi) vient du kanji 比, cursivé puis stylisé.
+          Le syllabaire a été popularisé d’abord par les femmes de la cour Heian — d’où son ancien surnom
+          d’« écriture des femmes » (onnade). Murasaki Shikibu a écrit le <em>Dit du Genji</em> presque
+          entièrement en hiragana.
+        </p>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">Quand les utilise-t-on ?</h3>
+        <ul>
+          <li><strong>Terminaisons grammaticales</strong> qui s’ajoutent aux racines kanji (verbes, adjectifs) : 食<strong>べる</strong> (taberu, manger).</li>
+          <li><strong>Particules</strong> qui structurent la phrase : は (wa), を (wo), の (no), に (ni)…</li>
+          <li><strong>Mots japonais natifs</strong> sans kanji courant ou trop rares : きれい (kirei, joli).</li>
+          <li><strong>Furigana</strong> : les petites annotations au-dessus d’un kanji difficile pour en donner la lecture.</li>
+        </ul>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">Le tableau gojūon</h3>
+        <p className="kana-table-legend">Lecture en ligne (de gauche à droite) : voyelle a, i, u, e, o puis enchaînement avec chaque consonne (k, s, t, n, h, m, y, r, w).</p>
+        <KanaTable rows={HIRAGANA} variant="kun" />
+        <p className="kana-table-note">
+          Ajoutez deux petits traits (<em>dakuten</em>) ou un petit rond (<em>handakuten</em>) en haut à droite
+          d’un caractère et la consonne se voise : か (ka) → が (ga), し (shi) → じ (ji), は (ha) → ば (ba) / ぱ (pa).
+          On obtient ainsi tous les sons manquants.
+        </p>
+      </section>
+    </>
+  )
+}
+
+// ── Sous-page : KATAKANA ───────────────────────────────────────────────
+const KATAKANA = [
+  ['ア a','イ i','ウ u','エ e','オ o'],
+  ['カ ka','キ ki','ク ku','ケ ke','コ ko'],
+  ['サ sa','シ shi','ス su','セ se','ソ so'],
+  ['タ ta','チ chi','ツ tsu','テ te','ト to'],
+  ['ナ na','ニ ni','ヌ nu','ネ ne','ノ no'],
+  ['ハ ha','ヒ hi','フ fu','ヘ he','ホ ho'],
+  ['マ ma','ミ mi','ム mu','メ me','モ mo'],
+  ['ヤ ya','—','ユ yu','—','ヨ yo'],
+  ['ラ ra','リ ri','ル ru','レ re','ロ ro'],
+  ['ワ wa','—','—','—','ヲ wo'],
+  ['ン n','','','',''],
+]
+
+function KatakanaPage() {
+  return (
+    <>
+      <h2 className="readings-title">Les katakana <span className="readings-jp">カタカナ</span></h2>
+      <p className="readings-lede">
+        Les katakana sont l’autre syllabaire japonais — mêmes 46 sons que les hiragana,
+        formes plus anguleuses. Ils servent surtout aux mots d’origine étrangère, aux
+        onomatopées et à l’emphase (un peu comme nos <em>italiques</em>).
+      </p>
+
+      <section className="readings-section">
+        <h3 className="readings-h">D’où viennent-ils ?</h3>
+        <p>
+          Les katakana ont aussi été créés à partir des kanji vers le IXe siècle, mais selon
+          une logique différente : on a gardé <strong>un fragment</strong> (radical, partie haute, partie gauche)
+          d’un kanji utilisé pour sa valeur phonétique. Exemple : カ (ka) est le côté gauche de 加.
+          À l’origine, ils servaient aux moines bouddhistes comme annotations rapides pour aider
+          à lire les textes chinois — d’où leurs formes coupantes et pratiques à graver.
+        </p>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">Quand les utilise-t-on ?</h3>
+        <ul>
+          <li><strong>Mots empruntés à l’étranger</strong> (gairaigo) : コンピュータ (konpyūta, ordinateur), パン (pan, pain, du portugais).</li>
+          <li><strong>Noms étrangers</strong> : アメリカ (Amerika), フランス (Furansu).</li>
+          <li><strong>Onomatopées</strong> : ワンワン (wanwan, le woof du chien), ドキドキ (dokidoki, le cœur qui bat).</li>
+          <li><strong>Termes scientifiques</strong>, espèces animales ou végétales : ヒト (hito, espèce humaine, par opposition à 人).</li>
+          <li><strong>Emphase</strong> ou style « pop » dans la pub, les mangas, les enseignes.</li>
+        </ul>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">Le tableau gojūon</h3>
+        <KanaTable rows={KATAKANA} variant="on" />
+        <p className="kana-table-note">
+          Mêmes voisements que pour les hiragana : カ (ka) → ガ (ga), シ (shi) → ジ (ji), ハ (ha) → バ (ba) / パ (pa).
+          Le katakana ajoute aussi le tiret allongeur ー pour marquer une voyelle longue, courant dans les
+          emprunts (コーヒー kōhī, le café).
+        </p>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">Tableau comparatif rapide</h3>
+        <table className="kana-compare">
+          <thead><tr><th>Son</th><th>Hiragana</th><th>Katakana</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>a</td><td className="kc-jp">あ</td><td className="kc-jp">ア</td><td>hiragana = rond, katakana = anguleux</td></tr>
+            <tr><td>i</td><td className="kc-jp">い</td><td className="kc-jp">イ</td><td></td></tr>
+            <tr><td>ka</td><td className="kc-jp">か</td><td className="kc-jp">カ</td><td></td></tr>
+            <tr><td>shi</td><td className="kc-jp">し</td><td className="kc-jp">シ</td><td>シ ≠ ツ (tsu) — la différence est dans l’angle des traits</td></tr>
+            <tr><td>n</td><td className="kc-jp">ん</td><td className="kc-jp">ン</td><td>la seule consonne sans voyelle des deux syllabaires</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </>
+  )
+}
+
+// Tableau gojūon générique pour les deux syllabaires.
+function KanaTable({ rows, variant }) {
+  return (
+    <div className={`kana-table ${variant === 'on' ? 'is-kata' : 'is-hira'}`}>
+      {rows.map((row, ri) => (
+        <div key={ri} className="kt-row">
+          {row.map((cell, ci) => {
+            if (!cell) return <div key={ci} className="kt-cell kt-empty" />
+            if (cell === '—') return <div key={ci} className="kt-cell kt-dash">—</div>
+            const [jp, ...rest] = cell.split(' ')
+            const rom = rest.join(' ')
+            return (
+              <div key={ci} className="kt-cell">
+                <div className="kt-jp">{jp}</div>
+                <div className="kt-rom">{rom}</div>
+              </div>
+            )
+          })}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ── Sous-page : ROMAJI ─────────────────────────────────────────────────
+function RomajiPage() {
+  return (
+    <>
+      <h2 className="readings-title">Le rōmaji <span className="readings-jp">ローマ字</span></h2>
+      <p className="readings-lede">
+        Le rōmaji (« lettres romaines ») est la transcription du japonais en <strong>alphabet latin</strong>.
+        C’est ce qu’on lit sur les panneaux d’aéroport, dans les méthodes de langue, et dans Namae
+        à côté de chaque kanji. Mais il existe <strong>plusieurs systèmes</strong> de transcription,
+        et ils ne s’accordent pas tous.
+      </p>
+
+      <section className="readings-section">
+        <h3 className="readings-h">Trois systèmes principaux</h3>
+        <div className="rom-systems">
+          <div className="rom-card rom-hepburn">
+            <div className="rom-card-head">Hepburn <span className="rom-card-tag">le standard international</span></div>
+            <p>Conçu par le missionnaire James Hepburn en 1867. Conçu pour qu’un anglophone prononce
+              correctement à la lecture. C’est <strong>le système utilisé dans Namae</strong>, sur les
+              passeports japonais et la plupart des panneaux touristiques.</p>
+            <div className="rom-ex">し = <strong>shi</strong>, ち = <strong>chi</strong>, つ = <strong>tsu</strong>, ふ = <strong>fu</strong>, じ = <strong>ji</strong></div>
+          </div>
+          <div className="rom-card rom-kunrei">
+            <div className="rom-card-head">Kunrei-shiki <span className="rom-card-tag">officiel japonais</span></div>
+            <p>Adopté par le gouvernement japonais en 1937. Plus systématique (régulier dans les
+              colonnes du tableau gojūon) mais moins intuitif pour un francophone ou un anglophone.</p>
+            <div className="rom-ex">し = <strong>si</strong>, ち = <strong>ti</strong>, つ = <strong>tu</strong>, ふ = <strong>hu</strong>, じ = <strong>zi</strong></div>
+          </div>
+          <div className="rom-card rom-nihon">
+            <div className="rom-card-head">Nihon-shiki <span className="rom-card-tag">historique</span></div>
+            <p>Encore plus régulier, conserve des distinctions historiques qui n’ont plus cours en
+              japonais moderne. Surtout d’intérêt linguistique aujourd’hui.</p>
+            <div className="rom-ex">ぢ = <strong>di</strong>, づ = <strong>du</strong> (vs Hepburn ji, zu)</div>
+          </div>
+        </div>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">Les voyelles longues : macrons (ō, ū)</h3>
+        <p>
+          Le japonais distingue les voyelles courtes et longues. Hepburn marque les longues avec un
+          <strong> macron</strong> au-dessus : ō, ū, ē, ā. C’est la convention que Namae utilise systématiquement.
+        </p>
+        <div className="vowel-grid">
+          <div className="vow"><div className="vow-jp">東京</div><div className="vow-ok">Tōkyō ✓</div><div className="vow-ko">Tokyo (toléré mais imprécis)</div></div>
+          <div className="vow"><div className="vow-jp">大阪</div><div className="vow-ok">Ōsaka ✓</div><div className="vow-ko">Osaka ou Oosaka</div></div>
+          <div className="vow"><div className="vow-jp">北海道</div><div className="vow-ok">Hokkaidō ✓</div><div className="vow-ko">Hokkaido</div></div>
+          <div className="vow"><div className="vow-jp">京都</div><div className="vow-ok">Kyōto ✓</div><div className="vow-ko">Kyoto</div></div>
+        </div>
+        <p className="kana-table-note">
+          Dans la vie courante, les versions sans macron sont très répandues (et acceptées) — c’est
+          pour ça que Tokyo se lit toujours Tōkyō même quand on l’écrit sans accent. Namae conserve
+          les macrons pour rester précis sur la prononciation.
+        </p>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">Limites du rōmaji</h3>
+        <ul>
+          <li>Il ne capture pas l’<strong>intonation</strong> (pitch accent) : 箸 hashi « baguettes » et
+              橋 hashi « pont » s’écrivent pareil mais se prononcent avec des hauteurs différentes.</li>
+          <li>Il fige une prononciation moderne : certaines distinctions historiques disparaissent
+              (ぢ et じ se prononcent tous deux <em>ji</em> aujourd’hui).</li>
+          <li>Il occulte la structure du mot : 北海道 écrit « Hokkaidō » ne montre plus qu’il s’agit
+              de trois kanji distincts. C’est pour ça que Namae affiche toujours <strong>kanji + rōmaji côte à côte</strong>.</li>
+        </ul>
+      </section>
+    </>
+  )
+}
+
+// ── Sous-page : KUN ↔ ON (le contenu détaillé existant) ────────────────
+function KunOnPage() {
+  return (
+    <>
       <h2 className="readings-title">Kun'yomi & On'yomi <span className="readings-jp">訓読み・音読み</span></h2>
       <p className="readings-lede">
         Pourquoi un même kanji peut-il se lire de deux façons selon le mot ?
@@ -1220,7 +1559,7 @@ function ReadingsExplainer() {
         🔍 <em>Explorer</em> et observe les badges <span className="krd-tag krd-kun" style={{cursor: 'default'}}>kun</span> /
         <span className="krd-tag krd-on" style={{cursor: 'default', marginLeft: 4}}>on</span> avec un œil neuf.
       </p>
-    </div>
+    </>
   )
 }
 
@@ -1834,6 +2173,97 @@ const CSS = `
 
 /* ═══ Page LECTURES ═══════════════════════════════════════════════════ */
 .readings-page { font-size: 15px; line-height: 1.7; color: #e8edf5; }
+
+/* Sub-nav (5 onglets : Kanji / Hiragana / Katakana / Rōmaji / Kun↔On) */
+.readings-subnav {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #2a3a54; padding-bottom: 12px;
+}
+.rsn {
+  display: flex; flex-direction: column; align-items: center;
+  font-family: inherit;
+  background: #161e2e; color: #94a3b8; border: 1px solid #2a3a54;
+  padding: 6px 14px 8px; border-radius: 999px; cursor: pointer;
+  transition: all .15s;
+}
+.rsn:hover { color: #e8edf5; border-color: #3b4d6b; }
+.rsn.on { background: #f472b6; border-color: #f472b6; color: #0f1623; }
+.rsn-jp { font-family: 'Noto Serif JP', serif; font-size: 13px; line-height: 1; }
+.rsn-fr { font-size: 11.5px; font-weight: 600; margin-top: 2px; }
+.rsn.on .rsn-jp, .rsn.on .rsn-fr { color: #0f1623; }
+
+/* Page Kanji : stats + pictogrammes + compo */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 12px 0; }
+.stat { background: #161e2e; border: 1px solid #2a3a54; border-left: 3px solid #f472b6; border-radius: 12px; padding: 12px 14px; }
+.stat-num { font-family: 'DM Serif Display', serif; font-size: 28px; color: #f472b6; line-height: 1.1; }
+.stat-label { font-size: 12.5px; color: #cbd5e1; margin-top: 4px; line-height: 1.4; }
+.kanji-pictograms { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 14px 0; }
+.kp-card { background: #161e2e; border: 1px solid #2a3a54; border-radius: 12px; padding: 14px; text-align: center; }
+.kp-glyph { font-family: 'Noto Serif JP', serif; font-size: 56px; color: #f472b6; line-height: 1; margin-bottom: 4px; }
+.kp-rom { font-weight: 700; color: #e8edf5; font-size: 13px; }
+.kp-fr { color: #cbd5e1; font-size: 13px; margin: 2px 0 4px; }
+.kp-note { color: #94a3b8; font-size: 12px; font-style: italic; line-height: 1.4; }
+.combo-flow { display: flex; justify-content: center; gap: 10px; align-items: center; margin: 14px 0; flex-wrap: wrap; }
+.combo-step { background: #161e2e; border: 1px solid #2a3a54; border-radius: 12px; padding: 12px 16px; text-align: center; }
+.combo-glyph { font-family: 'Noto Serif JP', serif; font-size: 44px; color: #4ade80; line-height: 1; margin-bottom: 4px; }
+.combo-label { font-size: 12px; color: #cbd5e1; }
+.combo-arrow { font-size: 22px; color: #f472b6; font-weight: 700; }
+.ex-list { list-style: none; padding: 0; }
+.ex-list li { background: #161e2e; border: 1px solid #2a3a54; border-radius: 10px; padding: 10px 14px; margin-bottom: 6px; font-size: 14px; }
+.ex-list .ex-jp { font-family: 'Noto Serif JP', serif; font-size: 18px; color: #f472b6; margin-right: 10px; }
+.inline-link { background: none; border: none; color: #f9a8d4; cursor: pointer; font: inherit; padding: 0; text-decoration: underline; }
+.inline-link:hover { color: #f472b6; }
+
+/* Tableaux gojūon hiragana/katakana */
+.kana-table { display: flex; flex-direction: column; gap: 6px; background: #0f1623; border: 1px solid #2a3a54; border-radius: 12px; padding: 10px; margin: 10px 0; }
+.kt-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.kt-cell {
+  background: #161e2e; border: 1px solid #2a3a54; border-radius: 8px;
+  padding: 8px 4px; text-align: center; min-height: 56px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.kt-empty { background: transparent; border: none; }
+.kt-dash { color: #475569; display: flex; align-items: center; justify-content: center; }
+.kt-jp { font-family: 'Noto Serif JP', serif; font-size: 22px; color: #e8edf5; line-height: 1.1; }
+.is-hira .kt-jp { color: #4ade80; }
+.is-kata .kt-jp { color: #38bdf8; }
+.kt-rom { font-size: 11px; color: #94a3b8; margin-top: 2px; font-weight: 600; }
+.kana-table-legend { font-size: 12.5px; color: #94a3b8; font-style: italic; margin: 8px 0; }
+.kana-table-note { font-size: 13px; color: #cbd5e1; background: #161e2e; border-left: 3px solid #f472b6; padding: 10px 12px; border-radius: 0 8px 8px 0; margin: 10px 0; line-height: 1.55; }
+
+.kana-compare { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 12px 0; background: #161e2e; border-radius: 12px; overflow: hidden; }
+.kana-compare th, .kana-compare td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #2a3a54; }
+.kana-compare th { background: #1c2740; color: #94a3b8; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; }
+.kana-compare tr:last-child td { border-bottom: none; }
+.kc-jp { font-family: 'Noto Serif JP', serif; font-size: 20px; color: #f472b6; text-align: center; }
+
+/* Page Rōmaji */
+.rom-systems { display: flex; flex-direction: column; gap: 10px; margin: 12px 0; }
+.rom-card { background: #161e2e; border: 1px solid #2a3a54; border-radius: 12px; padding: 14px 16px; }
+.rom-hepburn { border-left: 4px solid #f472b6; }
+.rom-kunrei  { border-left: 4px solid #fb923c; }
+.rom-nihon   { border-left: 4px solid #94a3b8; }
+.rom-card-head { font-weight: 700; font-size: 15.5px; margin-bottom: 6px; color: #e8edf5; }
+.rom-card-tag { font-weight: 400; font-size: 12px; color: #94a3b8; font-style: italic; margin-left: 8px; }
+.rom-card p { margin: 0 0 8px; font-size: 13.5px; color: #cbd5e1; line-height: 1.55; }
+.rom-ex { font-family: 'Noto Serif JP', serif; font-size: 14px; color: #cbd5e1; background: #0f1623; border-radius: 6px; padding: 6px 10px; }
+.rom-ex strong { color: #f472b6; }
+.vowel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin: 12px 0; }
+.vow { background: #161e2e; border: 1px solid #2a3a54; border-left: 3px solid #4ade80; border-radius: 10px; padding: 10px 12px; }
+.vow-jp { font-family: 'Noto Serif JP', serif; font-size: 22px; color: #f472b6; margin-bottom: 4px; }
+.vow-ok { color: #4ade80; font-weight: 600; font-size: 13.5px; }
+.vow-ko { color: #94a3b8; font-size: 12px; font-style: italic; margin-top: 2px; }
+
+@media (max-width: 560px) {
+  .readings-subnav { gap: 4px; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 8px; }
+  .rsn { flex-shrink: 0; padding: 5px 10px 6px; }
+  .kt-cell { min-height: 50px; padding: 6px 2px; }
+  .kt-jp { font-size: 18px; }
+  .kt-rom { font-size: 10px; }
+  .kanji-pictograms { grid-template-columns: repeat(2, 1fr); }
+  .stat-num { font-size: 22px; }
+}
 .readings-title {
   font-family: 'DM Serif Display', serif; font-size: 32px; line-height: 1.1;
   margin: 0 0 8px; color: #f472b6;
