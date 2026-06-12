@@ -10,6 +10,48 @@ const MAPLIBRE_JS = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'
 const MAPLIBRE_CSS = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css'
 const MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron'
 
+// ── Stockage local (historique des analyses + préférences) ─────────────────
+const HISTORY_KEY = 'namae_history_v1'
+const HISTORY_MAX = 50
+
+function loadHistory() {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = window.localStorage.getItem(HISTORY_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch { return [] }
+}
+
+function saveHistoryEntry(entry) {
+  if (typeof window === 'undefined' || !entry?.kanji) return
+  try {
+    const list = loadHistory()
+    const dedup = list.filter((e) => e.kanji !== entry.kanji)
+    dedup.unshift({
+      kanji: entry.kanji,
+      romaji: entry.romaji || null,
+      short_fr: entry.short_fr || null,
+      timestamp: Date.now(),
+    })
+    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(dedup.slice(0, HISTORY_MAX)))
+  } catch {}
+}
+
+function clearHistoryStorage() {
+  if (typeof window === 'undefined') return
+  try { window.localStorage.removeItem(HISTORY_KEY) } catch {}
+}
+
+function formatRelativeTime(ts) {
+  if (!ts) return ''
+  const diff = (Date.now() - ts) / 1000
+  if (diff < 60) return 'à l’instant'
+  if (diff < 3600) return `il y a ${Math.round(diff / 60)} min`
+  if (diff < 86400) return `il y a ${Math.round(diff / 3600)} h`
+  if (diff < 86400 * 7) return `il y a ${Math.round(diff / 86400)} j`
+  return new Date(ts).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+}
+
 // Reverse-geocoding via Nominatim (OpenStreetMap) — libre, sans clé. On demande
 // les détails de nommage (`namedetails=1`) pour récupérer en une seule requête
 // les variantes `name:ja` (kanji, ce qu'on décompose) et `name:en` (lecture
@@ -422,7 +464,7 @@ function AiPartCard({ part, onShowReadings }) {
 // ════════════════════════════════════════════════════════════════════════
 //  Mode EXPLORER
 // ════════════════════════════════════════════════════════════════════════
-function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onShowReadings }) {
+function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onShowReadings, onAnalyzed }) {
   // L'analyse étymologique est déléguée à un appel serveur (Claude Opus 4.7).
   // On envoie kanji + latin séparés quand on les a (typiquement depuis la carte
   // via Nominatim), sinon on devine d'après le script de l'entrée.
@@ -449,7 +491,12 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onS
         if (j.error) throw new Error(j.message || j.error)
         return j
       })
-      .then((data) => setAnalysis({ loading: false, data, error: null }))
+      .then((data) => {
+        setAnalysis({ loading: false, data, error: null })
+        // Sauvegarde dans l'historique local (utilisé par l'onglet « Mon espace »).
+        saveHistoryEntry(data)
+        onAnalyzed?.()
+      })
       .catch((err) => {
         if (err.name === 'AbortError') return
         setAnalysis({ loading: false, data: null, error: err.message || 'Erreur inconnue' })
@@ -889,6 +936,154 @@ function ReadingsExplainer() {
 }
 
 // ════════════════════════════════════════════════════════════════════════
+//  Mode MON ESPACE — historique local + import Polarsteps
+// ════════════════════════════════════════════════════════════════════════
+function Profile({ onAnalyze, historyTick }) {
+  const [history, setHistory] = useState([])
+  const [psUsername, setPsUsername] = useState('')
+  const [psState, setPsState] = useState({ loading: false, data: null, error: null })
+
+  useEffect(() => { setHistory(loadHistory()) }, [historyTick])
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const u = window.localStorage.getItem('namae_ps_username')
+      if (u) setPsUsername(u)
+    } catch {}
+  }, [])
+
+  function fetchPolarsteps() {
+    const u = psUsername.trim()
+    if (!u) return
+    try { window.localStorage.setItem('namae_ps_username', u) } catch {}
+    setPsState({ loading: true, data: null, error: null })
+    fetch(`/api/polarsteps?username=${encodeURIComponent(u)}`)
+      .then(async (r) => {
+        const j = await r.json().catch(() => null)
+        if (!r.ok || !j) throw new Error(j?.message || j?.error || `HTTP ${r.status}`)
+        if (j.error) throw new Error(j.error === 'user_not_found' ? `Utilisateur « ${u} » introuvable ou profil privé.` : (j.message || j.error))
+        return j
+      })
+      .then((data) => setPsState({ loading: false, data, error: null }))
+      .catch((err) => setPsState({ loading: false, data: null, error: err.message || 'Erreur inconnue' }))
+  }
+
+  function clearAll() {
+    if (!window.confirm('Effacer toutes les analyses sauvegardées ?')) return
+    clearHistoryStorage()
+    setHistory([])
+  }
+
+  return (
+    <div className="profile-page">
+      <h2 className="readings-title">Mon espace</h2>
+
+      {/* ───── Historique des analyses ───── */}
+      <section className="profile-section">
+        <div className="profile-section-head">
+          <h3 className="readings-h">📝 Mes dernières analyses</h3>
+          {history.length > 0 && (
+            <button className="profile-clear" onClick={clearAll}>Tout effacer</button>
+          )}
+        </div>
+        {history.length === 0 ? (
+          <p className="profile-empty">
+            Aucune analyse pour l’instant. Centre un lieu sur la carte de l’<em>Explorer</em>
+            et clique <strong>« Analyser ce lieu »</strong> — il s’ajoutera ici automatiquement.
+          </p>
+        ) : (
+          <ul className="hist-list">
+            {history.map((e, i) => (
+              <li key={i}>
+                <button className="hist-item" onClick={() => onAnalyze(e.kanji, e.romaji)} title="Relancer l’analyse">
+                  <div className="hist-jp">{e.kanji}</div>
+                  <div className="hist-body">
+                    {e.romaji && <div className="hist-rom">{e.romaji}</div>}
+                    {e.short_fr && <div className="hist-short">{e.short_fr}</div>}
+                  </div>
+                  <div className="hist-when">{formatRelativeTime(e.timestamp)}</div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="profile-help">
+          L’historique est stocké uniquement <strong>sur ton appareil</strong> (localStorage du navigateur).
+          Aucun envoi serveur, aucun compte requis.
+        </p>
+      </section>
+
+      {/* ───── Import Polarsteps ───── */}
+      <section className="profile-section">
+        <h3 className="readings-h">🌍 Importer depuis Polarsteps</h3>
+        <p className="profile-blurb">
+          Si tu utilises <a href="https://polarsteps.com" target="_blank" rel="noreferrer">Polarsteps</a>
+          pour tracer tes voyages, on peut récupérer toutes tes <strong>étapes au Japon</strong> et te laisser
+          analyser leur étymologie d’un clic. Ça marche pour les profils <strong>publics</strong>.
+        </p>
+        <div className="ps-form">
+          <input
+            type="text"
+            className="ps-input"
+            value={psUsername}
+            onChange={(e) => setPsUsername(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && fetchPolarsteps()}
+            placeholder="ton-username-polarsteps"
+            autoComplete="off"
+            spellCheck="false"
+          />
+          <button className="ps-btn" onClick={fetchPolarsteps} disabled={psState.loading || !psUsername.trim()}>
+            {psState.loading ? 'Chargement…' : 'Charger mes étapes'}
+          </button>
+        </div>
+        {psState.error && (
+          <div className="ps-error">{psState.error}</div>
+        )}
+        {psState.data && (
+          <div className="ps-result">
+            <p className="ps-summary">
+              {psState.data.first_name && <>Bonjour <strong>{psState.data.first_name}</strong> · </>}
+              <strong>{psState.data.total_japan_steps}</strong> étape{psState.data.total_japan_steps > 1 ? 's' : ''} au Japon
+              sur {psState.data.total_trips} voyage{psState.data.total_trips > 1 ? 's' : ''}.
+            </p>
+            {psState.data.steps.length === 0 ? (
+              <p className="profile-empty">Aucune étape au Japon dans ce profil.</p>
+            ) : (
+              <ul className="hist-list">
+                {psState.data.steps.map((s) => {
+                  const name = s.name || (s.display_name || '').split(',')[0].trim()
+                  return (
+                    <li key={s.id}>
+                      <button
+                        className="hist-item"
+                        onClick={() => onAnalyze(null, name)}
+                        title="Analyser l’étymologie de cette étape"
+                      >
+                        <div className="hist-body">
+                          <div className="hist-rom">{name || '(sans nom)'}</div>
+                          {s.trip_name && <div className="hist-short">{s.trip_name}</div>}
+                        </div>
+                        <div className="hist-when">
+                          {s.start_time ? new Date(s.start_time * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
+                        </div>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </div>
+        )}
+        <p className="profile-help">
+          ⚠️ L’API Polarsteps n’est <strong>pas officielle</strong> — elle peut changer ou être bloquée à tout moment.
+          Le nom d’utilisateur reste sur ton appareil, on ne le stocke nulle part côté serveur.
+        </p>
+      </section>
+    </div>
+  )
+}
+
+// ════════════════════════════════════════════════════════════════════════
 //  Page
 // ════════════════════════════════════════════════════════════════════════
 export default function NamaePage() {
@@ -902,6 +1097,9 @@ export default function NamaePage() {
   // par Nominatim via `name:en`). Affichée à côté du kanji dans la fiche.
   const [submittedLatin, setSubmittedLatin] = useState(null)
   const [toast, setToast] = useState(null)
+  // Tick incrémenté à chaque analyse réussie — permet au composant Profile
+  // de rafraîchir sa liste localStorage en temps réel.
+  const [historyTick, setHistoryTick] = useState(0)
   // Référence stable vers run(), pour que les handlers Leaflet (créés une seule
   // fois au montage) appellent toujours la dernière version.
   const runRef = useRef(null)
@@ -1000,13 +1198,15 @@ export default function NamaePage() {
           <button className={`tab ${tab === 'readings' ? 'on' : ''}`} onClick={() => setTab('readings')}>📚 Lectures</button>
           <button className={`tab ${tab === 'learn' ? 'on' : ''}`} onClick={() => setTab('learn')}>📖 Apprendre</button>
           <button className={`tab ${tab === 'quiz' ? 'on' : ''}`} onClick={() => setTab('quiz')}>🎯 Quiz</button>
+          <button className={`tab ${tab === 'profile' ? 'on' : ''}`} onClick={() => setTab('profile')}>👤 Mon espace</button>
         </nav>
 
         <main className="main">
-          {tab === 'explore' && <Explorer query={query} setQuery={setQuery} submitted={submitted} submittedLatin={submittedLatin} run={run} runRef={runRef} onShowReadings={() => setTab('readings')} />}
+          {tab === 'explore' && <Explorer query={query} setQuery={setQuery} submitted={submitted} submittedLatin={submittedLatin} run={run} runRef={runRef} onShowReadings={() => setTab('readings')} onAnalyzed={() => setHistoryTick((t) => t + 1)} />}
           {tab === 'readings' && <ReadingsExplainer />}
           {tab === 'learn' && <Learn />}
           {tab === 'quiz' && <Quiz />}
+          {tab === 'profile' && <Profile historyTick={historyTick} onAnalyze={(ja, en) => { setTab('explore'); runRef.current?.(ja || en, en || null) }} />}
         </main>
 
         <footer className="footer">名前 Namae · aide pédagogique à la toponymie japonaise</footer>
@@ -1425,6 +1625,66 @@ const CSS = `
   background: rgba(244,114,182,.05); border: 1px dashed rgba(244,114,182,.25);
   border-radius: 12px; padding: 14px 16px;
   margin-top: 24px;
+}
+
+/* ═══ Page MON ESPACE ════════════════════════════════════════════════ */
+.profile-page { font-size: 14.5px; line-height: 1.6; color: #e8edf5; }
+.profile-section { margin-bottom: 36px; }
+.profile-section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.profile-section-head .readings-h { margin: 0; }
+.profile-clear {
+  font-family: inherit; font-size: 12.5px;
+  background: transparent; color: #94a3b8; border: 1px solid #2a3a54;
+  padding: 5px 10px; border-radius: 999px; cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+.profile-clear:hover { color: #f87171; border-color: #f87171; }
+.profile-empty { color: #94a3b8; font-size: 13.5px; background: #161e2e; border: 1px dashed #2a3a54; border-radius: 12px; padding: 14px 16px; line-height: 1.55; }
+.profile-help { font-size: 12px; color: #64748b; margin-top: 10px; line-height: 1.55; }
+.profile-blurb { color: #cbd5e1; margin: 0 0 12px; }
+.profile-blurb a { color: #f9a8d4; }
+
+.hist-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.hist-item {
+  display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; align-items: center;
+  width: 100%; text-align: left; font-family: inherit;
+  background: #161e2e; border: 1px solid #2a3a54; border-radius: 12px;
+  padding: 12px 14px; cursor: pointer;
+  transition: border-color .15s, background .15s, transform .12s;
+}
+.hist-item:hover { border-color: #f472b6; background: #1c2740; transform: translateY(-1px); }
+.hist-jp { font-family: 'Noto Serif JP', serif; font-size: 28px; color: #f472b6; line-height: 1; text-align: center; }
+.hist-body { min-width: 0; }
+.hist-rom { font-weight: 600; color: #e8edf5; font-size: 15px; }
+.hist-short { font-size: 12.5px; color: #94a3b8; font-style: italic; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+.hist-when { font-size: 11.5px; color: #64748b; white-space: nowrap; }
+
+.ps-form { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+.ps-input {
+  flex: 1; min-width: 160px;
+  font-family: inherit; font-size: 14.5px;
+  background: #161e2e; color: #e8edf5; border: 1px solid #2a3a54;
+  border-radius: 10px; padding: 10px 14px; outline: none;
+}
+.ps-input:focus { border-color: #f472b6; }
+.ps-btn {
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  background: #f472b6; color: #0f1623; border: none;
+  border-radius: 10px; padding: 0 18px; cursor: pointer; transition: filter .15s;
+}
+.ps-btn:hover:not(:disabled) { filter: brightness(1.08); }
+.ps-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.ps-error {
+  color: #fca5a5; background: rgba(248,113,113,.08);
+  border: 1px solid rgba(248,113,113,.3); border-radius: 10px;
+  padding: 10px 14px; font-size: 13.5px; margin-bottom: 12px;
+}
+.ps-summary { color: #cbd5e1; margin: 0 0 10px; }
+
+@media (max-width: 560px) {
+  .hist-item { grid-template-columns: 44px 1fr; }
+  .hist-jp { font-size: 24px; }
+  .hist-when { grid-column: 2; margin-top: 2px; }
 }
 
 @media (max-width: 560px) {
