@@ -13,6 +13,7 @@ import {
   KANJI_MAP,
   ROMAJI_PREFIXES,
   ROMAJI_SUFFIXES,
+  gazetteerEntry,
   normalizeRomaji,
 } from './components'
 
@@ -45,7 +46,11 @@ function alternatives(rom, chosen) {
 }
 
 // ── Découpage d'une entrée en kanji ────────────────────────────────────────
-function decomposeKanji(input) {
+// `contextReadings` (optionnel) : tableau de lectures aligné token-par-token
+// avec le découpage produit ici. Quand fourni, chaque part reçoit la lecture
+// effective dans le composé (« tō » pour 東 dans Tōkyō, plutôt que la kun’yomi
+// canonique « higashi »).
+function decomposeKanji(input, contextReadings) {
   const chars = [...input].filter((ch) => KANJI_RE.test(ch))
   const tokens = []
   for (let i = 0; i < chars.length; i++) {
@@ -72,10 +77,16 @@ function decomposeKanji(input) {
     }
   }
 
+  // N'attache la lecture contextuelle que si le tableau couvre tous les tokens.
+  const readings = Array.isArray(contextReadings) && contextReadings.length === tokens.length
+    ? contextReadings
+    : null
+
   const parts = tokens.map((t, i) => ({
     text: t.text,
     comp: t.comp,
     role: i === prefixIdx ? 'prefix' : i === suffixIdx ? 'suffix' : 'core',
+    reading: readings ? readings[i] : undefined,
     alts: t.comp ? alternatives(normalizeRomaji(t.comp.romaji[0]), t.comp) : [],
   }))
 
@@ -155,9 +166,9 @@ export function decompose(rawInput) {
   }
 
   // Lieu célèbre saisi en romaji → on résout vers ses kanji pour une étymologie exacte.
-  const resolved = GAZETTEER[normalizeRomaji(input)]
+  const resolved = gazetteerEntry(GAZETTEER[normalizeRomaji(input)])
   if (resolved) {
-    return { input, script: 'kanji', resolvedKanji: resolved, ...decomposeKanji(resolved) }
+    return { input, script: 'kanji', resolvedKanji: resolved.k, ...decomposeKanji(resolved.k, resolved.r) }
   }
 
   return { input, script, ...decomposeRomaji(input) }

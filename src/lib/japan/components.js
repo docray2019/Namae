@@ -322,23 +322,83 @@ const KANJI_ALIASES = {
 // Gazetteer : lieux célèbres dont la romanisation est ambiguë. On les résout vers
 // leurs kanji (découpage fiable) pour afficher une étymologie exacte même saisis en
 // romaji. Clés normalisées (sans macron, minuscules).
+//
+// Forme : { k: '<kanji>', r: ['<lecture1>', '<lecture2>', ...] }
+//   k : graphie en kanji.
+//   r : lectures contextuelles, alignées token-par-token avec le découpage de
+//       decomposeKanji (les composants à 2 kanji reconnus comptent pour 1 token).
+//       Omettre `r` revient à utiliser la lecture canonique de chaque composant.
+// Rétro-compat : si la valeur est une chaîne, on la traite comme { k: value }.
 export const GAZETTEER = {
-  tokyo: '東京', kyoto: '京都', osaka: '大阪', kobe: '神戸', nagoya: '名古屋',
-  yokohama: '横浜', kawasaki: '川崎', saitama: '埼玉', chiba: '千葉',
-  shibuya: '渋谷', shinjuku: '新宿', ueno: '上野', asakusa: '浅草',
-  akihabara: '秋葉原', ikebukuro: '池袋', harajuku: '原宿', roppongi: '六本木',
-  ginza: '銀座', shinagawa: '品川', meguro: '目黒', setagaya: '世田谷',
-  nihonbashi: '日本橋', odaiba: '台場', marunouchi: '丸の内',
-  shimokitazawa: '下北沢', kichijoji: '吉祥寺',
-  nagano: '長野', nagasaki: '長崎', niigata: '新潟', sapporo: '札幌',
-  sendai: '仙台', fukuoka: '福岡', kanazawa: '金沢', hakone: '箱根',
-  nikko: '日光', nara: '奈良', kamakura: '鎌倉', yokosuka: '横須賀',
-  takamatsu: '高松', matsuyama: '松山', kumamoto: '熊本', kagoshima: '鹿児島',
-  shizuoka: '静岡', hamamatsu: '浜松', kitakyushu: '北九州', okinawa: '沖縄',
-  naha: '那覇', aomori: '青森', akita: '秋田', morioka: '盛岡',
-  dotonbori: '道頓堀', kinkakuji: '金閣寺', ginkakuji: '銀閣寺',
-  fujisan: '富士山', mtfuji: '富士山', fuji: '富士山', edo: '江戸',
-  hokkaido: '北海道', honshu: '本州', kyushu: '九州', shikoku: '四国',
+  tokyo:        { k: '東京',   r: ['tō', 'kyō'] },
+  kyoto:        { k: '京都',   r: ['kyō', 'to'] },
+  osaka:        { k: '大阪',   r: ['ō', 'saka'] },
+  kobe:         { k: '神戸',   r: ['kō', 'be'] },
+  nagoya:       { k: '名古屋', r: ['na', 'go', 'ya'] },
+  yokohama:     { k: '横浜',   r: ['yoko', 'hama'] },
+  kawasaki:     { k: '川崎',   r: ['kawa', 'saki'] },
+  saitama:      { k: '埼玉',   r: ['sai', 'tama'] },
+  chiba:        { k: '千葉',   r: ['chi', 'ba'] },
+  shibuya:      { k: '渋谷',   r: ['shibu', 'ya'] },
+  shinjuku:     { k: '新宿',   r: ['shin', 'juku'] },
+  ueno:         { k: '上野',   r: ['ue', 'no'] },
+  asakusa:      { k: '浅草',   r: ['asa', 'kusa'] },
+  akihabara:    { k: '秋葉原', r: ['aki', 'ha', 'bara'] },
+  ikebukuro:    { k: '池袋',   r: ['ike', 'bukuro'] },
+  harajuku:     { k: '原宿',   r: ['hara', 'juku'] },
+  roppongi:     { k: '六本木', r: ['rop', 'pon', 'gi'] },
+  ginza:        { k: '銀座',   r: ['ginza'] },
+  shinagawa:    { k: '品川',   r: ['shina', 'gawa'] },
+  meguro:       { k: '目黒',   r: ['me', 'guro'] },
+  setagaya:     { k: '世田谷', r: ['se', 'ta', 'gaya'] },
+  nihonbashi:   { k: '日本橋', r: ['ni', 'hon', 'bashi'] },
+  odaiba:       { k: '台場',   r: ['o', 'daiba'] },
+  marunouchi:   { k: '丸の内', r: ['maru', 'uchi'] },
+  shimokitazawa:{ k: '下北沢', r: ['shimo', 'kita', 'zawa'] },
+  kichijoji:    { k: '吉祥寺', r: ['kichi', 'jō', 'ji'] },
+  nagano:       { k: '長野',   r: ['naga', 'no'] },
+  nagasaki:     { k: '長崎',   r: ['naga', 'saki'] },
+  niigata:      { k: '新潟',   r: ['nii', 'gata'] },
+  sapporo:      { k: '札幌',   r: ['sap', 'poro'] },
+  sendai:       { k: '仙台',   r: ['sen', 'dai'] },
+  fukuoka:      { k: '福岡',   r: ['fuku', 'oka'] },
+  hiroshima:    { k: '広島',   r: ['hiro', 'shima'] },
+  kanazawa:     { k: '金沢',   r: ['kana', 'zawa'] },
+  hakone:       { k: '箱根',   r: ['hako', 'ne'] },
+  nikko:        { k: '日光',   r: ['nik', 'kō'] },
+  nara:         { k: '奈良',   r: ['na', 'ra'] },
+  kamakura:     { k: '鎌倉',   r: ['kama', 'kura'] },
+  yokosuka:     { k: '横須賀', r: ['yoko', 'su', 'ka'] },
+  takamatsu:    { k: '高松',   r: ['taka', 'matsu'] },
+  matsuyama:    { k: '松山',   r: ['matsu', 'yama'] },
+  kumamoto:     { k: '熊本',   r: ['kuma', 'moto'] },
+  kagoshima:    { k: '鹿児島', r: ['ka', 'go', 'shima'] },
+  shizuoka:     { k: '静岡',   r: ['shizu', 'oka'] },
+  hamamatsu:    { k: '浜松',   r: ['hama', 'matsu'] },
+  kitakyushu:   { k: '北九州', r: ['kita', 'kyū', 'shū'] },
+  okinawa:      { k: '沖縄',   r: ['oki', 'nawa'] },
+  naha:         { k: '那覇',   r: ['na', 'ha'] },
+  aomori:       { k: '青森',   r: ['ao', 'mori'] },
+  akita:        { k: '秋田',   r: ['aki', 'ta'] },
+  morioka:      { k: '盛岡',   r: ['mori', 'oka'] },
+  dotonbori:    { k: '道頓堀', r: ['dō', 'ton', 'bori'] },
+  kinkakuji:    { k: '金閣寺', r: ['kin', 'kaku', 'ji'] },
+  ginkakuji:    { k: '銀閣寺', r: ['gin', 'kaku', 'ji'] },
+  fujisan:      { k: '富士山', r: ['fu', 'ji', 'san'] },
+  mtfuji:       { k: '富士山', r: ['fu', 'ji', 'san'] },
+  fuji:         { k: '富士山', r: ['fu', 'ji', 'san'] },
+  edo:          { k: '江戸',   r: ['e', 'do'] },
+  hokkaido:     { k: '北海道', r: ['hok', 'kai', 'dō'] },
+  honshu:       { k: '本州',   r: ['hon', 'shū'] },
+  kyushu:       { k: '九州',   r: ['kyū', 'shū'] },
+  shikoku:      { k: '四国',   r: ['shi', 'koku'] },
+}
+
+// Normalise une entrée du gazetteer (rétro-compat avec l'ancien format string).
+export function gazetteerEntry(value) {
+  if (!value) return null
+  if (typeof value === 'string') return { k: value, r: undefined }
+  return value
 }
 
 // ── Index de recherche ─────────────────────────────────────────────────────
