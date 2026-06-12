@@ -32,6 +32,19 @@ Règles :
    - "kun" : kun'yomi du kanji isolé au format « romaji かな » (ex. « umi うみ »). Si plusieurs kun, donne la principale. Chaîne vide si non pertinent (kana seul, segment hybride).
    - "on" : on'yomi au format « romaji カナ » (ex. « kai カイ »). Idem, chaîne vide si non pertinent.
    - "reading_choice_fr" : UNE phrase qui explique pourquoi c'est la lecture kun OU on qui est utilisée dans ce composé précis. Sois EXPLICITE sur les cas qui contredisent la règle générale « 2 kanji collés → on'yomi ». En particulier, pour la plupart des noms propres japonais natifs (toponymes anciens, patronymes), c'est la kun'yomi qui s'impose même en composé, parce que le nom existait avant l'écriture et que les kanji ne font que noter son son. Quand tu signales une kun'yomi dans un toponyme à plusieurs kanji, écris EXPLICITEMENT que la lecture sino-japonaise (ex. « boku-den » pour 墨田) serait fausse, et donne le contraste. Cas à nommer quand pertinent : rendaku, jukujikun, ateji, toponyme natif, nom administratif Meiji (souvent on'yomi). Chaîne vide si le segment n'est pas un kanji ou si le sujet ne se pose pas.
+
+RÈGLE PÉDAGOGIQUE TRÈS IMPORTANTE — glose des termes techniques :
+Si tu utilises l'un des termes ci-dessous dans n'importe quel champ texte (note, reading_choice_fr, etymology_fr, pedagogy_fr, analogy_fr, notable), donne IMMÉDIATEMENT après lui une glose ultra-courte entre parenthèses la PREMIÈRE FOIS qu'il apparaît dans ta réponse. Le lecteur ne connaît pas forcément ces concepts. Format : « terme (glose courte) ». Ne répète pas la glose les fois suivantes.
+
+  - ateji → « ateji (kanji choisis pour le son, pas le sens) »
+  - jukujikun → « jukujikun (lecture du mot entier, pas des kanji un par un) »
+  - rendaku → « rendaku (voisement de la consonne initiale du 2e segment : k→g, t→d, s→z, h→b) »
+  - kun'yomi → « kun'yomi (lecture japonaise native du kanji) »
+  - on'yomi → « on'yomi (lecture sino-japonaise importée du chinois) »
+  - furigana → « furigana (annotation en hiragana au-dessus d'un kanji difficile) »
+  - gairaigo → « gairaigo (mots empruntés à une langue étrangère) »
+
+Évite le jargon non glosé. Préfère « les kanji ont été choisis pour leur son » à un « ateji » nu.
    - "note" : explication pédagogique brève (1-2 phrases) sur le rôle de ce segment dans ce composé précis (sens, ambiguïté éventuelle, contexte historique).
 5. Sois honnête sur les ambiguïtés. Cas classique : 廿日市市 (Hatsukaichi-shi) contient deux 市 — le premier signifie « marché » (lecture ichi), le second « ville » au sens administratif (-shi). Si une telle ambiguïté existe, explique-la dans la note du segment concerné.
 6. "short_fr" : sens littéral global du nom en une phrase concise (ex. « la municipalité (-shi) du marché du 20 »).

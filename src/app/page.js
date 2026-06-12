@@ -384,6 +384,56 @@ const HAS_KANJI = /[㐀-鿿豈-﫿]/
 
 const ROLE_COLOR = { prefix: '#fb923c', core: '#f472b6', suffix: '#2dd4bf' }
 
+// Termes techniques rendus cliquables dans les textes renvoyés par Claude
+// (notes, reading_choice_fr…). Cliquer envoie vers la bonne sous-page de Lectures.
+const GLOSSARY = [
+  { term: 'jukujikun', sub: 'atejijuku' },
+  { term: '熟字訓',    sub: 'atejijuku' },
+  { term: 'ateji',     sub: 'atejijuku' },
+  { term: '当て字',    sub: 'atejijuku' },
+  { term: 'rendaku',   sub: 'kunon' },
+  { term: '連濁',      sub: 'kunon' },
+  { term: 'kun’yomi',  sub: 'kunon' },
+  { term: "kun'yomi",  sub: 'kunon' },
+  { term: '訓読み',    sub: 'kunon' },
+  { term: 'on’yomi',   sub: 'kunon' },
+  { term: "on'yomi",   sub: 'kunon' },
+  { term: '音読み',    sub: 'kunon' },
+  { term: 'furigana',  sub: 'hiragana' },
+  { term: 'gairaigo',  sub: 'katakana' },
+  { term: 'hiragana',  sub: 'hiragana' },
+  { term: 'katakana',  sub: 'katakana' },
+]
+
+// Wrap les occurrences d'un terme du glossaire dans un bouton qui change
+// la sous-page Lectures. Insensible à la casse, respecte la frontière de mot.
+function Glossarized({ text, onGoTo }) {
+  if (!text) return null
+  if (!onGoTo) return text
+  const pattern = GLOSSARY.map((g) => g.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')
+  const re = new RegExp(`(?<![A-Za-zÀ-ÿ])(${pattern})(?![A-Za-zÀ-ÿ])`, 'gi')
+  const out = []
+  let lastIdx = 0
+  let m, i = 0
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > lastIdx) out.push(text.slice(lastIdx, m.index))
+    const matched = m[0]
+    const entry = GLOSSARY.find((g) => g.term.toLowerCase() === matched.toLowerCase())
+    out.push(
+      <button
+        key={`g${i++}`}
+        type="button"
+        className="gloss-link"
+        onClick={() => onGoTo(entry?.sub || 'atejijuku')}
+        title="Cliquer pour ouvrir l’explication"
+      >{matched}</button>
+    )
+    lastIdx = m.index + matched.length
+  }
+  if (lastIdx < text.length) out.push(text.slice(lastIdx))
+  return <>{out}</>
+}
+
 // Pastille compacte d'un segment renvoyé par l'IA (préfixe / nom principal / suffixe).
 // Les suffixes sont volontairement plus petits et badgés — ils ne portent pas
 // l'identité du lieu, juste sa fonction administrative ou topographique.
@@ -405,7 +455,7 @@ function AiSegment({ part }) {
 // et explication du choix de lecture dans ce composé précis. Les badges « kun »
 // et « on » sont cliquables : ils déplient une définition courte du concept,
 // utile au lecteur qui ne maîtrise pas encore les deux familles de lectures.
-function AiPartCard({ part, onShowReadings }) {
+function AiPartCard({ part, onShowReadings, onGoToReadingsSub }) {
   const color = ROLE_COLOR[part.role] || '#64748b'
   const isSuffix = part.role === 'suffix'
   const reading = isSuffix && part.reading ? `-${part.reading}` : part.reading
@@ -421,7 +471,7 @@ function AiPartCard({ part, onShowReadings }) {
           <span className="kcard-cat" style={{ background: color }}>{ROLE_LABEL[part.role] || part.role}</span>
         </div>
         <div className="kcard-fr">{part.fr}</div>
-        {part.note && <div className="kcard-note">{part.note}</div>}
+        {part.note && <div className="kcard-note"><Glossarized text={part.note} onGoTo={onGoToReadingsSub} /></div>}
         {hasReadings && (
           <div className="kcard-readings">
             <div className="krd-head">Lectures du kanji <span className="krd-hint">(clique sur kun / on)</span></div>
@@ -500,7 +550,7 @@ function AiPartCard({ part, onShowReadings }) {
               </div>
             )}
             {part.reading_choice_fr && (
-              <div className="krd-choice">→ {part.reading_choice_fr}</div>
+              <div className="krd-choice">→ <Glossarized text={part.reading_choice_fr} onGoTo={onGoToReadingsSub} /></div>
             )}
           </div>
         )}
@@ -523,7 +573,7 @@ function detectCoords(s) {
   return { lat, lng }
 }
 
-function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onShowReadings, onAnalyzed, showToast }) {
+function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onShowReadings, onAnalyzed, showToast, onGoToReadingsSub }) {
   // L'analyse étymologique est déléguée à un appel serveur (Claude Opus 4.7).
   // On envoie kanji + latin séparés quand on les a (typiquement depuis la carte
   // via Nominatim), sinon on devine d'après le script de l'entrée.
@@ -671,7 +721,7 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onS
             <div className="details">
               <h3 className="section-h">Décomposition détaillée</h3>
               {data.parts.map((p, i) => (
-                <AiPartCard key={i} part={p} onShowReadings={onShowReadings} />
+                <AiPartCard key={i} part={p} onShowReadings={onShowReadings} onGoToReadingsSub={onGoToReadingsSub} />
               ))}
             </div>
           )}
@@ -679,28 +729,28 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onS
           {data.etymology_fr && (
             <div className="ai-block">
               <h3 className="section-h">Étymologie</h3>
-              <p className="ai-prose">{data.etymology_fr}</p>
+              <p className="ai-prose"><Glossarized text={data.etymology_fr} onGoTo={onGoToReadingsSub} /></p>
             </div>
           )}
 
           {data.pedagogy_fr && (
             <div className="ai-block">
               <h3 className="section-h">Comprendre les lectures</h3>
-              <p className="ai-prose">{data.pedagogy_fr}</p>
+              <p className="ai-prose"><Glossarized text={data.pedagogy_fr} onGoTo={onGoToReadingsSub} /></p>
             </div>
           )}
 
           {data.analogy_fr && (
             <div className="ai-block ai-analogy">
               <h3 className="section-h">Une analogie en français</h3>
-              <p className="ai-prose">{data.analogy_fr}</p>
+              <p className="ai-prose"><Glossarized text={data.analogy_fr} onGoTo={onGoToReadingsSub} /></p>
             </div>
           )}
 
           {data.notable && (
             <div className="ai-block">
               <h3 className="section-h">À noter</h3>
-              <p className="ai-prose">{data.notable}</p>
+              <p className="ai-prose"><Glossarized text={data.notable} onGoTo={onGoToReadingsSub} /></p>
             </div>
           )}
 
@@ -880,15 +930,15 @@ function Quiz() {
 //  Mode LECTURES — hub avec 5 sous-pages : Kanji, Hiragana, Katakana, Romaji, Kun↔On
 // ════════════════════════════════════════════════════════════════════════
 const READINGS_SUBPAGES = [
-  { id: 'kanji',    label: 'Kanji',       jp: '漢字' },
-  { id: 'hiragana', label: 'Hiragana',    jp: 'ひらがな' },
-  { id: 'katakana', label: 'Katakana',    jp: 'カタカナ' },
-  { id: 'romaji',   label: 'Rōmaji',      jp: 'Aa' },
-  { id: 'kunon',    label: 'Kun ↔ On',    jp: '訓・音' },
+  { id: 'kanji',     label: 'Kanji',       jp: '漢字' },
+  { id: 'hiragana',  label: 'Hiragana',    jp: 'ひらがな' },
+  { id: 'katakana',  label: 'Katakana',    jp: 'カタカナ' },
+  { id: 'romaji',    label: 'Rōmaji',      jp: 'Aa' },
+  { id: 'kunon',     label: 'Kun ↔ On',    jp: '訓・音' },
+  { id: 'atejijuku', label: 'Ateji & Juku.', jp: '当て字・熟字訓' },
 ]
 
-function ReadingsExplainer() {
-  const [sub, setSub] = useState('kanji')
+function ReadingsExplainer({ sub, setSub }) {
   return (
     <div className="readings-page">
       <nav className="readings-subnav">
@@ -907,7 +957,8 @@ function ReadingsExplainer() {
       {sub === 'hiragana' && <HiraganaPage />}
       {sub === 'katakana' && <KatakanaPage />}
       {sub === 'romaji' && <RomajiPage />}
-      {sub === 'kunon' && <KunOnPage />}
+      {sub === 'kunon' && <KunOnPage onGoTo={setSub} />}
+      {sub === 'atejijuku' && <AtejiJukujikunPage />}
     </div>
   )
 }
@@ -1217,8 +1268,118 @@ function RomajiPage() {
   )
 }
 
+// ── Sous-page : ATEJI & JUKUJIKUN ──────────────────────────────────────
+function AtejiJukujikunPage() {
+  return (
+    <>
+      <h2 className="readings-title">Ateji & Jukujikun <span className="readings-jp">当て字・熟字訓</span></h2>
+      <p className="readings-lede">
+        Deux mécanismes typiques de la toponymie japonaise. On vous les explique ici
+        parce que l’analyse étymologique va vous les mentionner souvent — et la règle
+        kun/on classique ne suffit pas à les comprendre. <strong>Le nom existait avant
+        l’écriture ; les kanji sont juste un costume.</strong>
+      </p>
+
+      <section className="readings-section">
+        <h3 className="readings-h">1. Le contexte</h3>
+        <p>
+          Le japonais avait <strong>déjà des mots</strong> avant l’arrivée de l’écriture
+          chinoise au Ve siècle. Quand il a fallu écrire ces vieux mots avec des kanji,
+          deux stratégies se sont mises en place — et souvent elles se mélangent.
+        </p>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">2. Ateji 当て字 — « coller des kanji sur un son »</h3>
+        <p>L’idée : on choisit des kanji <strong>pour leur prononciation</strong>, en
+        acceptant que leur sens soit secondaire (ou complètement à côté de la plaque).</p>
+
+        <div className="strat-card strat-a">
+          <div className="strat-head">Stratégie A : le sens (PAS de l’ateji)</div>
+          <div className="strat-eg"><span className="strat-jp">山</span> <span className="strat-arrow">→</span> <strong>yama</strong> <em>(montagne)</em></div>
+          <p>Logique évidente : 山 veut dire « montagne », yama veut dire « montagne ». Le kanji et le son collent.</p>
+        </div>
+
+        <div className="strat-card strat-b">
+          <div className="strat-head">Stratégie B : le SON seulement (ateji pur)</div>
+          <div className="strat-eg"><span className="strat-jp">寿司</span> <span className="strat-arrow">→</span> <strong>sushi</strong></div>
+          <p>寿 (longévité) + 司 (gouverner). Aucun de ces sens n’a rapport avec le poisson cru.
+          Les kanji ont été choisis parce que <em>su + shi</em> sonne « sushi ». Le sens est cosmétique.</p>
+        </div>
+
+        <div className="strat-card strat-c">
+          <div className="strat-head">Stratégie C : un mélange (fréquent en toponymie)</div>
+          <div className="strat-eg"><span className="strat-jp">大分</span> <span className="strat-arrow">→</span> <strong>Ōita</strong></div>
+          <p>大分 évoque « grande division » — un terrain découpé. Justification rationalisée <em>après coup</em>
+          pour rendre crédible le choix des kanji. Mais le nom Ōita existait déjà avant qu’on décide
+          quels kanji l’écriraient.</p>
+        </div>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">3. Jukujikun 熟字訓 — « lire le mot entier, pas les kanji un par un »</h3>
+        <p>Normalement, chaque kanji a sa lecture, et on enchaîne :</p>
+
+        <div className="strat-card strat-a">
+          <div className="strat-head">Lecture normale</div>
+          <div className="strat-eg"><span className="strat-jp">北 + 海 + 道</span> <span className="strat-arrow">→</span> <strong>hoku + kai + dō</strong></div>
+          <p>Chaque kanji apporte sa lecture, on additionne. Pas de mystère.</p>
+        </div>
+
+        <div className="strat-card strat-jk">
+          <div className="strat-head">Mais parfois : lecture du bloc entier</div>
+          <div className="strat-eg"><span className="strat-jp">大人</span> <span className="strat-arrow">→</span> <strong>otona</strong> <em>(adulte)</em>, et PAS dai + jin</div>
+          <p>Le mot <em>otona</em> existait déjà en japonais (« être grand, mûr »). On a collé
+          le bloc 大人 dessus pour l’écrire — mais la lecture ne se décompose PAS kanji par kanji.
+          Le groupe entier vaut <em>otona</em>. C’est ça, un <strong>jukujikun</strong>.</p>
+        </div>
+
+        <p>D’autres exemples courants :</p>
+        <ul className="ex-list">
+          <li><span className="ex-jp">今日</span> <strong>kyō</strong> — aujourd’hui (et pas kin + nichi)</li>
+          <li><span className="ex-jp">明日</span> <strong>ashita</strong> — demain (et pas mei + nichi)</li>
+          <li><span className="ex-jp">紅葉</span> <strong>momiji</strong> — érables d’automne (et pas kō + yō)</li>
+          <li><span className="ex-jp">大分</span> <strong>Ōita</strong> — préfecture (et pas dai + bun)</li>
+        </ul>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">4. Résumé visuel</h3>
+        <div className="summary-box">
+          <div className="sb-row">
+            <div className="sb-label">Lecture normale</div>
+            <div className="sb-eg"><span className="strat-jp">北 + 海 + 道</span> → hoku + kai + dō</div>
+          </div>
+          <div className="sb-row sb-row-jk">
+            <div className="sb-label">Jukujikun</div>
+            <div className="sb-eg"><span className="strat-jp">大 + 分</span> → <strong>ōita</strong> <span className="sb-note">(pas dai + bun)</span></div>
+          </div>
+          <div className="sb-row sb-row-aj">
+            <div className="sb-label">Ateji (son)</div>
+            <div className="sb-eg"><span className="strat-jp">寿司</span> → <strong>sushi</strong> <span className="sb-note">(kanji pour le son, pas le sens)</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">5. Pourquoi ça compte pour les toponymes</h3>
+        <p>
+          Beaucoup de noms de lieux japonais sont des <strong>mots ancestraux</strong> — plus
+          anciens que l’écriture. Quand on les transcrit en kanji, c’est souvent un mélange
+          d’<strong>ateji</strong> (choix des kanji pour le son) et de <strong>jukujikun</strong>
+          (la lecture du bloc reste figée comme un mot, indépendamment de la lecture des kanji isolés).
+        </p>
+        <p>
+          C’est pour ça que la règle « kanji seul = kun, deux kanji = on » ne marche pas pour
+          les toponymes anciens. Le nom préexiste — les kanji ne sont qu’un costume.
+        </p>
+      </section>
+    </>
+  )
+}
+
 // ── Sous-page : KUN ↔ ON (le contenu détaillé existant) ────────────────
-function KunOnPage() {
+function KunOnPage({ onGoTo }) {
   return (
     <>
       <h2 className="readings-title">Kun'yomi & On'yomi <span className="readings-jp">訓読み・音読み</span></h2>
@@ -1728,6 +1889,9 @@ export default function NamaePage() {
   // Tick incrémenté à chaque analyse réussie — permet au composant Profile
   // de rafraîchir sa liste localStorage en temps réel.
   const [historyTick, setHistoryTick] = useState(0)
+  // Sous-page courante de l'onglet Lectures (état levé pour permettre le
+  // deep-linking depuis les liens du glossaire dans les analyses).
+  const [readingsSub, setReadingsSub] = useState('kanji')
   // Référence stable vers run(), pour que les handlers Leaflet (créés une seule
   // fois au montage) appellent toujours la dernière version.
   const runRef = useRef(null)
@@ -1830,8 +1994,8 @@ export default function NamaePage() {
         </nav>
 
         <main className="main">
-          {tab === 'explore' && <Explorer query={query} setQuery={setQuery} submitted={submitted} submittedLatin={submittedLatin} run={run} runRef={runRef} onShowReadings={() => setTab('readings')} onAnalyzed={() => setHistoryTick((t) => t + 1)} showToast={showToast} />}
-          {tab === 'readings' && <ReadingsExplainer />}
+          {tab === 'explore' && <Explorer query={query} setQuery={setQuery} submitted={submitted} submittedLatin={submittedLatin} run={run} runRef={runRef} onShowReadings={() => setTab('readings')} onAnalyzed={() => setHistoryTick((t) => t + 1)} showToast={showToast} onGoToReadingsSub={(sub) => { setReadingsSub(sub); setTab('readings') }} />}
+          {tab === 'readings' && <ReadingsExplainer sub={readingsSub} setSub={setReadingsSub} />}
           {tab === 'learn' && <Learn />}
           {tab === 'quiz' && <Quiz />}
           {tab === 'profile' && <Profile historyTick={historyTick} onAnalyze={(ja, en) => { setTab('explore'); runRef.current?.(ja || en, en || null) }} />}
@@ -2254,6 +2418,51 @@ const CSS = `
 .vow-jp { font-family: 'Noto Serif JP', serif; font-size: 22px; color: #f472b6; margin-bottom: 4px; }
 .vow-ok { color: #4ade80; font-weight: 600; font-size: 13.5px; }
 .vow-ko { color: #94a3b8; font-size: 12px; font-style: italic; margin-top: 2px; }
+
+/* Liens du glossaire (ateji, jukujikun…) dans les textes de l'IA */
+.gloss-link {
+  font: inherit; font-style: italic; font-weight: 600;
+  background: rgba(244,114,182,.12); color: #f9a8d4;
+  border: none; border-bottom: 1px dotted #f472b6;
+  padding: 0 3px; margin: 0 1px; border-radius: 3px;
+  cursor: pointer; transition: background .15s, color .15s;
+}
+.gloss-link:hover { background: rgba(244,114,182,.25); color: #fff; }
+.gloss-link:after { content: ' ↗'; font-size: 0.78em; opacity: 0.65; }
+
+/* Page Ateji & Jukujikun : cartes par stratégie */
+.strat-card {
+  background: #161e2e; border: 1px solid #2a3a54; border-radius: 12px;
+  padding: 14px 16px; margin: 10px 0;
+}
+.strat-a  { border-left: 4px solid #4ade80; }
+.strat-b  { border-left: 4px solid #fb923c; }
+.strat-c  { border-left: 4px solid #f472b6; }
+.strat-jk { border-left: 4px solid #38bdf8; background: rgba(56,189,248,.05); }
+.strat-head { font-weight: 700; color: #e8edf5; font-size: 14.5px; margin-bottom: 8px; }
+.strat-eg { display: flex; align-items: center; gap: 10px; margin: 8px 0 10px; flex-wrap: wrap; font-size: 15px; color: #e8edf5; }
+.strat-jp { font-family: 'Noto Serif JP', serif; font-size: 28px; color: #f472b6; line-height: 1; }
+.strat-arrow { color: #f472b6; font-weight: 700; font-size: 20px; }
+.strat-card p { font-size: 13.5px; color: #cbd5e1; line-height: 1.6; margin: 6px 0 0; }
+.strat-card em { color: #fdf2f8; font-style: italic; }
+
+/* Résumé visuel */
+.summary-box {
+  background: #0f1623; border: 1px solid #2a3a54; border-radius: 12px;
+  padding: 14px; margin: 12px 0; font-family: 'DM Mono', 'Courier New', monospace;
+}
+.sb-row { display: grid; grid-template-columns: 140px 1fr; gap: 12px; align-items: center; padding: 8px 4px; border-bottom: 1px solid #1c2740; }
+.sb-row:last-child { border-bottom: none; }
+.sb-label { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; font-weight: 600; font-family: inherit; }
+.sb-row-jk .sb-label { color: #38bdf8; }
+.sb-row-aj .sb-label { color: #fb923c; }
+.sb-eg { font-size: 14px; color: #e8edf5; line-height: 1.5; }
+.sb-eg strong { color: #f472b6; }
+.sb-note { color: #94a3b8; font-style: italic; font-size: 12.5px; margin-left: 6px; }
+
+@media (max-width: 560px) {
+  .sb-row { grid-template-columns: 1fr; gap: 4px; }
+}
 
 @media (max-width: 560px) {
   .readings-subnav { gap: 4px; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 8px; }
