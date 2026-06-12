@@ -27,27 +27,62 @@ Règles :
 4. Pour chaque segment, fournis :
    - "text" : le ou les kanji du segment
    - "reading" : la lecture EFFECTIVE de ce segment DANS CE COMPOSÉ, en Hepburn avec macrons (pas la lecture isolée canonique du kanji)
-   - "role" : "prefix" | "core" | "suffix" (un seul rôle par segment)
+   - "role" : "prefix" | "core" | "suffix"
    - "fr" : sens contextuel en français, 5 mots max
-   - "note" : explication pédagogique brève (1-2 phrases) sur le rôle de ce segment dans ce composé précis
+   - "kun" : kun'yomi du kanji isolé au format « romaji かな » (ex. « umi うみ »). Si plusieurs kun, donne la principale. Chaîne vide si non pertinent (kana seul, segment hybride).
+   - "on" : on'yomi au format « romaji カナ » (ex. « kai カイ »). Idem, chaîne vide si non pertinent.
+   - "reading_choice_fr" : UNE phrase qui explique pourquoi c'est la lecture kun OU on qui est utilisée dans ce composé précis (rendaku, jukujikun, composé sino-japonais, lecture irrégulière de toponyme, etc.). Chaîne vide si le segment n'est pas un kanji ou si le sujet ne se pose pas.
+   - "note" : explication pédagogique brève (1-2 phrases) sur le rôle de ce segment dans ce composé précis (sens, ambiguïté éventuelle, contexte historique).
 5. Sois honnête sur les ambiguïtés. Cas classique : 廿日市市 (Hatsukaichi-shi) contient deux 市 — le premier signifie « marché » (lecture ichi), le second « ville » au sens administratif (-shi). Si une telle ambiguïté existe, explique-la dans la note du segment concerné.
 6. "short_fr" : sens littéral global du nom en une phrase concise (ex. « la municipalité (-shi) du marché du 20 »).
 7. "etymology_fr" : 2 à 4 phrases d'explication étymologique et/ou historique en français accessible.
-8. "notable" : anecdote, contexte historique, ou repère culturel (1-2 phrases). Chaîne vide si rien de saillant.
-9. Si tu ne reconnais pas le lieu ou si l'entrée n'est pas un toponyme japonais, renvoie quand même un JSON valide avec "kanji" et "romaji" vides et "short_fr" expliquant le souci.
+8. "pedagogy_fr" : 2 à 4 phrases qui expliquent globalement la LOGIQUE DES LECTURES dans ce nom (pourquoi telle lecture l'emporte sur l'autre, ce que ça révèle de la nature du composé : sino-japonais lettré, japonais natif, mélange). Si toutes les règles ont déjà été couvertes segment par segment, fais une synthèse de niveau supérieur.
+9. "analogy_fr" : 1 ou 2 phrases d'analogie en français quand elle est éclairante (ex. opposition « eau » vs « aqua- », « terre » vs « géo- », « œil » vs « ophtalmo- »). Chaîne vide si aucune analogie naturelle ne s'impose — n'invente pas pour invente.
+10. "notable" : anecdote, contexte historique, ou repère culturel (1-2 phrases). Chaîne vide si rien de saillant.
+11. Si tu ne reconnais pas le lieu ou si l'entrée n'est pas un toponyme japonais, renvoie quand même un JSON valide avec "kanji" et "romaji" vides et "short_fr" expliquant le souci.
 
 Format de sortie OBLIGATOIRE (JSON pur, rien d'autre, pas de \`\`\`json) :
 
 {
-  "kanji": "東京",
-  "romaji": "Tōkyō",
-  "short_fr": "« la capitale de l'Est »",
+  "kanji": "北海道",
+  "romaji": "Hokkaidō",
+  "short_fr": "« la route/région de la mer du Nord »",
   "parts": [
-    {"text": "東", "reading": "tō", "role": "prefix", "fr": "est", "note": "Le point cardinal est. Dans ce composé, lecture sino-japonaise « tō », pas la kun'yomi isolée « higashi »."},
-    {"text": "京", "reading": "kyō", "role": "core", "fr": "capitale", "note": "« Capitale impériale ». Au moment où Edo devient siège du pouvoir en 1868, on la renomme Tōkyō, littéralement « capitale de l'Est », en miroir de Kyōto (« capitale »)."}
+    {
+      "text": "北",
+      "reading": "hok",
+      "role": "prefix",
+      "fr": "nord",
+      "kun": "kita きた",
+      "on": "hoku ほく",
+      "reading_choice_fr": "C'est la on'yomi qui est employée ici (hoku, abrégé en hok devant kai) car Hokkaidō est un composé sino-japonais lettré, pas un nom japonais natif.",
+      "note": "Le point cardinal nord. La gémination « hok-kai » est un phénomène phonétique courant des composés sino-japonais."
+    },
+    {
+      "text": "海",
+      "reading": "kai",
+      "role": "core",
+      "fr": "mer",
+      "kun": "umi うみ",
+      "on": "kai かい",
+      "reading_choice_fr": "Lecture sino-japonaise (kai) car on est dans un composé savant ; la kun'yomi umi serait utilisée pour parler de la mer toute seule.",
+      "note": "La mer. Avec 北 et 道, désigne historiquement la « route de la mer du nord » qui menait vers l'île d'Ezo."
+    },
+    {
+      "text": "道",
+      "reading": "dō",
+      "role": "suffix",
+      "fr": "route, région administrative",
+      "kun": "michi みち",
+      "on": "dō どう",
+      "reading_choice_fr": "On'yomi pour rester cohérent avec le reste du composé sino-japonais ; la kun'yomi michi désignerait un chemin concret.",
+      "note": "Désigne ici une grande circonscription administrative ancienne (les « kaidō » de l'époque d'Edo). Hokkaidō est la seule à conserver ce statut aujourd'hui."
+    }
   ],
-  "etymology_fr": "Tōkyō est issu de la fusion de 東 (tō, est) et 京 (kyō, capitale). Le nom est moderne : il date de 1868, lorsque l'empereur Meiji déplace sa capitale d'Edo, qui devient « la capitale de l'Est » par opposition à Kyōto, ancien centre impérial à l'ouest.",
-  "notable": "Edo, le nom précédent, signifie « la porte de l'estuaire » — référence au site originel du bourg, à l'embouchure de la rivière Sumida."
+  "etymology_fr": "Hokkaidō est un toponyme moderne : il a été forgé en 1869 pour rebaptiser l'île jusqu'alors appelée Ezo. Le nom calque le modèle des anciennes « routes » impériales (Tōkaidō, San'yōdō) et signifie littéralement « la route/région de la mer du Nord ».",
+  "pedagogy_fr": "Les trois kanji se lisent en on'yomi (hoku → hok, kai, dō) parce que Hokkaidō est un composé d'origine sino-japonaise, comme la plupart des noms administratifs forgés à l'époque Meiji. Si l'on parlait de chacun de ces concepts isolément en japonais courant, on utiliserait les kun'yomi : kita (nord), umi (la mer), michi (un chemin). Le passage de hoku à hok devant le k de kai est une gémination typique de la phonologie sino-japonaise.",
+  "analogy_fr": "C'est comparable à l'opposition française entre « eau » (mot courant) et « aqua- » (préfixe savant d'origine latine) : on dit l'eau au quotidien, mais aqueduc ou aquatique dans les composés savants. 海 fonctionne pareil : umi quand on parle de la mer, kai dans les noms et les termes lettrés.",
+  "notable": "Hokkaidō est la seule des 47 divisions administratives du Japon à porter le suffixe -dō ; les autres sont -ken (préfectures), -fu (Ōsaka, Kyōto) ou -to (Tōkyō)."
 }`
 
 export async function POST(request) {

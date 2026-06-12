@@ -335,12 +335,13 @@ function AiSegment({ part }) {
   )
 }
 
-// Fiche détaillée d'un segment, avec note pédagogique de l'IA.
-// Les suffixes ont aussi une présentation plus compacte (glyph et corps réduits).
+// Fiche détaillée d'un segment, avec note pédagogique de l'IA, lectures kun/on
+// et explication du choix de lecture dans ce composé précis.
 function AiPartCard({ part }) {
   const color = ROLE_COLOR[part.role] || '#64748b'
   const isSuffix = part.role === 'suffix'
   const reading = isSuffix && part.reading ? `-${part.reading}` : part.reading
+  const hasReadings = part.kun || part.on
   return (
     <div className={`kcard ${isSuffix ? 'is-suffix' : ''}`} style={{ borderColor: color, ...(isSuffix ? { background: `${color}14` } : null) }}>
       <div className="kcard-glyph" style={{ color }}>{part.text}</div>
@@ -351,6 +352,26 @@ function AiPartCard({ part }) {
         </div>
         <div className="kcard-fr">{part.fr}</div>
         {part.note && <div className="kcard-note">{part.note}</div>}
+        {hasReadings && (
+          <div className="kcard-readings">
+            <div className="krd-head">Lectures du kanji</div>
+            {part.kun && (
+              <div className="krd-row">
+                <span className="krd-tag krd-kun" title="Kun'yomi : lecture japonaise native">kun</span>
+                <span className="krd-val">{part.kun}</span>
+              </div>
+            )}
+            {part.on && (
+              <div className="krd-row">
+                <span className="krd-tag krd-on" title="On'yomi : lecture sino-japonaise">on</span>
+                <span className="krd-val">{part.on}</span>
+              </div>
+            )}
+            {part.reading_choice_fr && (
+              <div className="krd-choice">→ {part.reading_choice_fr}</div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -452,6 +473,20 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef }) {
             <div className="ai-block">
               <h3 className="section-h">Étymologie</h3>
               <p className="ai-prose">{data.etymology_fr}</p>
+            </div>
+          )}
+
+          {data.pedagogy_fr && (
+            <div className="ai-block">
+              <h3 className="section-h">Comprendre les lectures</h3>
+              <p className="ai-prose">{data.pedagogy_fr}</p>
+            </div>
+          )}
+
+          {data.analogy_fr && (
+            <div className="ai-block ai-analogy">
+              <h3 className="section-h">Une analogie en français</h3>
+              <p className="ai-prose">{data.analogy_fr}</p>
             </div>
           )}
 
@@ -982,6 +1017,37 @@ const CSS = `
 }
 .ai-error code { background: rgba(15,22,35,.6); padding: 1px 6px; border-radius: 4px; font-size: 12.5px; }
 .ai-error-hint { font-size: 12.5px; color: #94a3b8; margin-top: 8px; line-height: 1.5; }
+
+/* Tableau kun/on dans la fiche détaillée. */
+.kcard-readings {
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px dashed #2a3a54;
+  font-size: 13px;
+}
+.krd-head {
+  font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .08em; color: #94a3b8; margin-bottom: 6px;
+}
+.krd-row { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.krd-tag {
+  display: inline-block; min-width: 32px;
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+  padding: 2px 6px; border-radius: 4px; text-align: center; cursor: help;
+}
+.krd-kun { background: rgba(74,222,128,.18); color: #4ade80; }
+.krd-on  { background: rgba(56,189,248,.18); color: #38bdf8; }
+.krd-val { font-family: 'Noto Serif JP', serif; color: #e8edf5; }
+.krd-choice {
+  margin-top: 8px; padding-left: 8px;
+  border-left: 2px solid #f472b6;
+  font-size: 12.5px; color: #cbd5e1; line-height: 1.5; font-style: italic;
+}
+
+/* Bloc analogie : sidebar visuelle pour bien le séparer du reste. */
+.ai-analogy .ai-prose {
+  background: rgba(244,114,182,.06); border-left: 3px solid #f472b6;
+  padding: 12px 14px; border-radius: 0 10px 10px 0; font-style: italic;
+}
 
 /* Carte */
 .map-wrap { margin-bottom: 20px; }
