@@ -124,13 +124,16 @@ function KanjiCard({ comp, big, reading }) {
 function MapPicker({ runRef }) {
   const containerRef = useRef(null)
   const [loading, setLoading] = useState(true)
-  const [hint, setHint] = useState('Pinch pour zoomer, glisse pour déplacer — le lieu au centre est analysé.')
+  const [hint, setHint] = useState('Pinch pour zoomer, glisse pour déplacer — le lieu au centre sera analysé.')
+  // Lieu candidat identifié par Nominatim au centre de la carte. L'utilisateur
+  // confirme via le bouton « Analyser ce lieu » avant qu'on appelle l'API Opus
+  // (qui est payante), pour éviter un appel par pan.
+  const [candidate, setCandidate] = useState(null) // { ja, en } | null
 
   useEffect(() => {
     let map = null
     let cancelled = false
     let debounce = null
-    let lastQuery = null
 
     async function ensureMaplibre() {
       if (window.maplibregl) return
@@ -153,8 +156,6 @@ function MapPicker({ runRef }) {
       })
     }
 
-    // Empile `name:ja` (gros) au-dessus, `name:en`/`name:latin` (petit) dessous.
-    // Hors Japon, retombe sur le nom local pour rester lisible.
     function bilingualTextField() {
       return [
         'case',
@@ -188,7 +189,7 @@ function MapPicker({ runRef }) {
       map = new ml.Map({
         container: containerRef.current,
         style: MAP_STYLE,
-        center: [139.6503, 35.6762], // Tokyo (lng, lat — ordre MapLibre)
+        center: [139.6503, 35.6762],
         zoom: 10,
         attributionControl: true,
       })
@@ -198,9 +199,12 @@ function MapPicker({ runRef }) {
         setLoading(false)
         applyBilingualLabels()
       })
-      // Le style peut changer (resize, etc.) — on réapplique au besoin.
       map.on('styledata', () => { if (map.isStyleLoaded()) applyBilingualLabels() })
 
+      // Au repos du geste, on identifie le lieu au centre (Nominatim, gratuit)
+      // et on stocke un candidat. On NE lance PAS l'analyse Opus tant que
+      // l'utilisateur n'a pas cliqué le bouton de confirmation.
+      map.on('movestart', () => setCandidate(null))
       map.on('moveend', () => {
         clearTimeout(debounce)
         debounce = setTimeout(async () => {
@@ -208,13 +212,9 @@ function MapPicker({ runRef }) {
           const z = map.getZoom()
           setHint('Identification du lieu au centre…')
           const found = await reverseGeocode(c.lat, c.lng, z)
-          if (!found) { setHint('Aucun lieu nommé au centre — déplace ou zoome encore.'); return }
-          const label = found.en ? `📍 ${found.ja} — ${found.en}` : `📍 ${found.ja}`
-          const key = found.ja + '@' + Math.round(z)
-          if (key === lastQuery) { setHint(label); return }
-          lastQuery = key
-          setHint(label)
-          runRef.current?.(found.ja, found.en)
+          if (!found) { setHint('Aucun lieu nommé au centre — déplace ou zoome encore.'); setCandidate(null); return }
+          setCandidate({ ja: found.ja, en: found.en })
+          setHint(found.en ? `📍 ${found.ja} — ${found.en}` : `📍 ${found.ja}`)
         }, 600)
       })
     }
@@ -225,14 +225,27 @@ function MapPicker({ runRef }) {
       clearTimeout(debounce)
       map?.remove()
     }
-  }, [runRef])
+  }, [])
 
   return (
     <div className="map-picker">
       <div ref={containerRef} className="map-picker-canvas" />
       <div className="map-picker-crosshair" aria-hidden>⊕</div>
       {loading && <div className="map-picker-loading">Chargement de la carte…</div>}
-      <div className="map-picker-hint">{hint}</div>
+      <div className="map-picker-actions">
+        <div className="map-picker-hint">{hint}</div>
+        {candidate && (
+          <button
+            className="map-picker-confirm"
+            onClick={() => runRef.current?.(candidate.ja, candidate.en)}
+            title="Lance l'analyse étymologique de ce lieu (appel API)"
+          >
+            ✓ Analyser{' '}
+            <strong>{candidate.ja}</strong>
+            {candidate.en && <span className="confirm-en"> · {candidate.en}</span>}
+          </button>
+        )}
+      </div>
     </div>
   )
 }
@@ -804,10 +817,22 @@ const CSS = `
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   font-size: 13px; color: #94a3b8;
 }
-.map-picker-hint {
-  font-size: 12.5px; color: #94a3b8; line-height: 1.5;
-  margin-top: 8px; padding: 0 4px;
+.map-picker-actions {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-top: 10px; padding: 0 4px; flex-wrap: wrap;
 }
+.map-picker-hint { font-size: 13px; color: #cbd5e1; line-height: 1.4; flex: 1; min-width: 0; }
+.map-picker-confirm {
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  background: #f472b6; color: #0f1623; border: none;
+  padding: 9px 16px; border-radius: 999px; cursor: pointer;
+  transition: filter .15s, transform .12s;
+  white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+}
+.map-picker-confirm:hover { filter: brightness(1.07); transform: translateY(-1px); }
+.map-picker-confirm:active { transform: translateY(0); }
+.map-picker-confirm strong { font-family: 'Noto Serif JP', serif; font-weight: 600; }
+.confirm-en { font-weight: 500; opacity: 0.75; font-size: 12.5px; }
 
 /* Recherche */
 .search { display: flex; gap: 10px; margin-bottom: 14px; }
