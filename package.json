@@ -1,0 +1,16 @@
+{
+  "name": "namae",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Namae 名前 — étymologie des noms de lieux japonais (préfixe / nom principal / suffixe), apprentissage des idéogrammes et quiz.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "^16.2.4",
+    "react": "^18",
+    "react-dom": "^18"
+  }
+}
