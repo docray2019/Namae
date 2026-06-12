@@ -339,7 +339,7 @@ function AiSegment({ part }) {
 // et explication du choix de lecture dans ce composé précis. Les badges « kun »
 // et « on » sont cliquables : ils déplient une définition courte du concept,
 // utile au lecteur qui ne maîtrise pas encore les deux familles de lectures.
-function AiPartCard({ part }) {
+function AiPartCard({ part, onShowReadings }) {
   const color = ROLE_COLOR[part.role] || '#64748b'
   const isSuffix = part.role === 'suffix'
   const reading = isSuffix && part.reading ? `-${part.reading}` : part.reading
@@ -389,6 +389,11 @@ function AiPartCard({ part }) {
                 d’origine japonaise du kanji, qui rendait dans l’écriture chinoise importée un mot déjà existant
                 en japonais. On l’utilise typiquement quand le kanji est <strong>seul</strong> ou dans un mot
                 d’origine purement japonaise. Ex. <span className="krd-ex">海 → umi (« la mer »)</span>.
+                {onShowReadings && (
+                  <button type="button" className="krd-more" onClick={onShowReadings}>
+                    📚 Tout comprendre kun ↔ on avec Hokkaidō →
+                  </button>
+                )}
               </div>
             )}
             {openExplain === 'on' && (
@@ -397,6 +402,11 @@ function AiPartCard({ part }) {
                 japonaise de la prononciation chinoise médiévale du caractère, emportée avec le caractère lors
                 de son emprunt. On la trouve surtout dans les <strong>composés savants</strong> de deux kanji
                 ou plus. Ex. <span className="krd-ex">海洋 → kaiyō (« l’océan ») — 海 se lit kai</span>.
+                {onShowReadings && (
+                  <button type="button" className="krd-more" onClick={onShowReadings}>
+                    📚 Tout comprendre kun ↔ on avec Hokkaidō →
+                  </button>
+                )}
               </div>
             )}
             {part.reading_choice_fr && (
@@ -412,7 +422,7 @@ function AiPartCard({ part }) {
 // ════════════════════════════════════════════════════════════════════════
 //  Mode EXPLORER
 // ════════════════════════════════════════════════════════════════════════
-function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef }) {
+function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onShowReadings }) {
   // L'analyse étymologique est déléguée à un appel serveur (Claude Opus 4.7).
   // On envoie kanji + latin séparés quand on les a (typiquement depuis la carte
   // via Nominatim), sinon on devine d'après le script de l'entrée.
@@ -496,7 +506,7 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef }) {
             <div className="details">
               <h3 className="section-h">Décomposition détaillée</h3>
               {data.parts.map((p, i) => (
-                <AiPartCard key={i} part={p} />
+                <AiPartCard key={i} part={p} onShowReadings={onShowReadings} />
               ))}
             </div>
           )}
@@ -702,6 +712,183 @@ function Quiz() {
 }
 
 // ════════════════════════════════════════════════════════════════════════
+//  Mode LECTURES — explication kun'yomi / on'yomi, exemplifiée sur 海 + Hokkaidō
+// ════════════════════════════════════════════════════════════════════════
+function ReadingsExplainer() {
+  return (
+    <div className="readings-page">
+      <h2 className="readings-title">Kun'yomi & On'yomi <span className="readings-jp">訓読み・音読み</span></h2>
+      <p className="readings-lede">
+        Pourquoi un même kanji peut-il se lire de deux façons selon le mot ?
+        Et pourquoi entend-on <em>kai</em> dans Hokkaidō plutôt que <em>umi</em> ?
+        On déroule tout, en partant du kanji 海.
+      </p>
+
+      <section className="readings-section">
+        <h3 className="readings-h">1. D'où vient cette double lecture ?</h3>
+        <p>
+          Vers le <strong>Ve siècle</strong>, le Japon emprunte l'écriture chinoise.
+          Mais les Japonais parlaient déjà — leur propre langue (le japonais ancien) n'avait
+          rien à voir avec le chinois. Quand ils ont importé les caractères chinois, ils ont
+          fait <strong>deux choses en même temps</strong> :
+        </p>
+        <ul>
+          <li>Associer chaque caractère à un mot japonais déjà existant qui avait le même sens
+              → c'est la <strong>kun'yomi</strong> (« lecture sémantique », native).</li>
+          <li>Garder aussi une approximation japonaise de la prononciation chinoise du caractère
+              → c'est la <strong>on'yomi</strong> (« lecture sonore », importée).</li>
+        </ul>
+        <p>
+          Du coup, presque chaque kanji standard a <strong>au moins deux lectures</strong>.
+          La question, c'est : laquelle utiliser dans quel cas ?
+        </p>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">2. Le cas du kanji 海 (la mer)</h3>
+        <div className="kanji-spotlight">
+          <div className="kanji-spotlight-glyph">海</div>
+          <div className="kanji-spotlight-body">
+            <div className="kanji-spotlight-fr">la mer</div>
+            <div className="kanji-spotlight-readings">
+              <div className="ksr-row">
+                <span className="ksr-tag ksr-kun">kun</span>
+                <span className="ksr-val">umi</span>
+                <span className="ksr-kana">うみ</span>
+                <span className="ksr-comment">— le mot japonais natif pour « la mer »</span>
+              </div>
+              <div className="ksr-row">
+                <span className="ksr-tag ksr-on">on</span>
+                <span className="ksr-val">kai</span>
+                <span className="ksr-kana">かい</span>
+                <span className="ksr-comment">— l'écho japonais du <em>hǎi</em> chinois</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p>
+          Les deux lectures coexistent et désignent toutes les deux <strong>la même chose</strong> :
+          la mer. Ce qui change, c'est <strong>le registre</strong> : <em>umi</em> est le mot quotidien,
+          <em>kai</em> est la brique des composés savants.
+        </p>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">3. La règle pratique</h3>
+        <div className="rule-grid">
+          <div className="rule-card rule-kun">
+            <div className="rule-card-head">→ Kun'yomi (umi)</div>
+            <div className="rule-card-when">Quand 海 est <strong>seul</strong> ou dans un mot d'origine <strong>purement japonaise</strong>.</div>
+            <ul className="rule-card-ex">
+              <li><span className="ex-jp">海</span> <span className="ex-rom">umi</span> — la mer</li>
+              <li><span className="ex-jp">海辺</span> <span className="ex-rom">umibe</span> — le bord de mer</li>
+              <li><span className="ex-jp">青海</span> <span className="ex-rom">aoumi</span> — la mer bleue</li>
+            </ul>
+          </div>
+          <div className="rule-card rule-on">
+            <div className="rule-card-head">→ On'yomi (kai)</div>
+            <div className="rule-card-when">Quand 海 est dans un <strong>composé sino-japonais</strong> (souvent 2+ kanji, registre lettré, vocabulaire administratif ou savant).</div>
+            <ul className="rule-card-ex">
+              <li><span className="ex-jp">海洋</span> <span className="ex-rom">kaiyō</span> — l'océan</li>
+              <li><span className="ex-jp">日本海</span> <span className="ex-rom">Nihonkai</span> — la mer du Japon</li>
+              <li><span className="ex-jp">北海道</span> <span className="ex-rom">Hokkaidō</span> — la « route de la mer du Nord »</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section className="readings-section readings-hokkaido">
+        <h3 className="readings-h">4. Pourquoi Hokkaidō et pas Kita-umi-michi ?</h3>
+        <p>
+          Hokkaidō est un nom <strong>moderne</strong> : il a été forgé en 1869, à l'époque Meiji, pour
+          remplacer l'ancien nom de l'île d'Ezo. Le moule est <em>sino-japonais</em> — celui des
+          grandes circonscriptions administratives (les anciens <em>kaidō</em>, « routes »).
+          Donc les trois kanji prennent leur on'yomi :
+        </p>
+        <div className="hokkaido-breakdown">
+          <div className="hb-row">
+            <div className="hb-kanji">北</div>
+            <div className="hb-vs">
+              <div className="hb-on"><span className="ksr-tag ksr-on">on</span> hoku → hok</div>
+              <div className="hb-kun"><span className="ksr-tag ksr-kun">kun</span> kita</div>
+            </div>
+            <div className="hb-meaning">nord</div>
+          </div>
+          <div className="hb-row">
+            <div className="hb-kanji">海</div>
+            <div className="hb-vs">
+              <div className="hb-on"><span className="ksr-tag ksr-on">on</span> <strong>kai</strong></div>
+              <div className="hb-kun"><span className="ksr-tag ksr-kun">kun</span> umi</div>
+            </div>
+            <div className="hb-meaning">mer</div>
+          </div>
+          <div className="hb-row">
+            <div className="hb-kanji">道</div>
+            <div className="hb-vs">
+              <div className="hb-on"><span className="ksr-tag ksr-on">on</span> dō</div>
+              <div className="hb-kun"><span className="ksr-tag ksr-kun">kun</span> michi</div>
+            </div>
+            <div className="hb-meaning">route, région</div>
+          </div>
+        </div>
+        <div className="hb-result">
+          <div className="hb-result-label">Lecture choisie (composé sino-japonais) :</div>
+          <div className="hb-result-jp">北海道 → <strong>Hok·kai·dō</strong></div>
+          <div className="hb-result-note">
+            Si on lisait Hokkaidō en pures kun'yomi, on dirait « kita-umi-michi » : grammaticalement faisable,
+            mais ça sonnerait comme un commentaire descriptif (« la route maritime du nord ») et pas comme
+            un nom de province. Le japonais administratif <em>est</em> sino-japonais, comme le français
+            administratif aime le latin (« infraction » plutôt que « faute »).
+          </div>
+        </div>
+      </section>
+
+      <section className="readings-section readings-analogy">
+        <h3 className="readings-h">5. L'analogie qui sauve : eau / aqua-</h3>
+        <p>
+          En français, on a déjà ce mécanisme — sans s'en rendre compte. Le mot quotidien et le préfixe
+          savant ne sont pas le même mot, mais désignent la même chose :
+        </p>
+        <table className="analogy-table">
+          <thead>
+            <tr><th>Sens</th><th>Mot courant</th><th>Composés savants</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>eau</td><td>l'<strong>eau</strong></td><td><strong>aqua</strong>tique, <strong>aqua</strong>relle, <strong>aqua</strong>duc</td></tr>
+            <tr><td>terre</td><td>la <strong>terre</strong></td><td><strong>géo</strong>logie, <strong>géo</strong>graphie</td></tr>
+            <tr><td>œil</td><td>un <strong>œil</strong></td><td><strong>ophtalmo</strong>logue, <strong>opti</strong>que</td></tr>
+            <tr><td>la mer</td><td><strong>umi</strong> (海)</td><td><strong>kai</strong>yō (海洋), Hok<strong>kai</strong>dō (北海道)</td></tr>
+          </tbody>
+        </table>
+        <p>
+          La logique est exactement la même : la langue importe du vocabulaire savant d'un autre fonds
+          (latin pour le français, chinois pour le japonais), et garde le mot natif pour le quotidien.
+        </p>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">6. Mémo express</h3>
+        <ul className="memo-list">
+          <li><strong>Kanji seul ou avec hiragana de relation</strong> (の, を, を) → en général <em>kun'yomi</em>.</li>
+          <li><strong>Deux kanji collés</strong>, surtout dans un registre administratif/savant → en général <em>on'yomi</em>.</li>
+          <li><strong>Noms de lieux et noms de famille</strong> → exception : beaucoup ont leurs propres
+              lectures, parfois irrégulières (<em>jukujikun</em>). Ex. 神戸 = Kōbe, pas « kami-to » ni « shin-ko ».</li>
+          <li><strong>Phénomène de rendaku</strong> : la première consonne du second segment peut « se voiser »
+              (k → g, h → b, s → z…). Ex. 川 <em>kawa</em> tout seul, mais 江戸<strong>川</strong> <em>Edogawa</em>.</li>
+        </ul>
+      </section>
+
+      <p className="readings-coda">
+        Tu peux maintenant relire l'analyse étymologique d'un lieu et comprendre <strong>pourquoi</strong>
+        telle lecture est employée à chaque endroit du nom — pas juste la noter. Reviens à l'onglet
+        🔍 <em>Explorer</em> et observe les badges <span className="krd-tag krd-kun" style={{cursor: 'default'}}>kun</span> /
+        <span className="krd-tag krd-on" style={{cursor: 'default', marginLeft: 4}}>on</span> avec un œil neuf.
+      </p>
+    </div>
+  )
+}
+
+// ════════════════════════════════════════════════════════════════════════
 //  Page
 // ════════════════════════════════════════════════════════════════════════
 export default function NamaePage() {
@@ -810,12 +997,14 @@ export default function NamaePage() {
 
         <nav className="tabs">
           <button className={`tab ${tab === 'explore' ? 'on' : ''}`} onClick={() => setTab('explore')}>🔍 Explorer</button>
+          <button className={`tab ${tab === 'readings' ? 'on' : ''}`} onClick={() => setTab('readings')}>📚 Lectures</button>
           <button className={`tab ${tab === 'learn' ? 'on' : ''}`} onClick={() => setTab('learn')}>📖 Apprendre</button>
           <button className={`tab ${tab === 'quiz' ? 'on' : ''}`} onClick={() => setTab('quiz')}>🎯 Quiz</button>
         </nav>
 
         <main className="main">
-          {tab === 'explore' && <Explorer query={query} setQuery={setQuery} submitted={submitted} submittedLatin={submittedLatin} run={run} runRef={runRef} />}
+          {tab === 'explore' && <Explorer query={query} setQuery={setQuery} submitted={submitted} submittedLatin={submittedLatin} run={run} runRef={runRef} onShowReadings={() => setTab('readings')} />}
+          {tab === 'readings' && <ReadingsExplainer />}
           {tab === 'learn' && <Learn />}
           {tab === 'quiz' && <Quiz />}
         </main>
@@ -1101,6 +1290,155 @@ const CSS = `
 .ai-analogy .ai-prose {
   background: rgba(244,114,182,.06); border-left: 3px solid #f472b6;
   padding: 12px 14px; border-radius: 0 10px 10px 0; font-style: italic;
+}
+
+/* Lien « tout comprendre » dans les encarts kun/on. */
+.krd-more {
+  display: block; margin-top: 10px;
+  font-family: inherit; font-size: 12.5px; font-weight: 600;
+  background: rgba(15,22,35,.5); color: #f9a8d4; border: 1px solid rgba(244,114,182,.3);
+  padding: 6px 12px; border-radius: 999px; cursor: pointer;
+  transition: filter .15s, border-color .15s;
+}
+.krd-more:hover { filter: brightness(1.1); border-color: #f472b6; }
+
+/* ═══ Page LECTURES ═══════════════════════════════════════════════════ */
+.readings-page { font-size: 15px; line-height: 1.7; color: #e8edf5; }
+.readings-title {
+  font-family: 'DM Serif Display', serif; font-size: 32px; line-height: 1.1;
+  margin: 0 0 8px; color: #f472b6;
+}
+.readings-jp { font-family: 'Noto Serif JP', serif; font-size: 22px; color: #fdf2f8; margin-left: 8px; }
+.readings-lede {
+  font-size: 15.5px; color: #cbd5e1; line-height: 1.65;
+  background: rgba(244,114,182,.06); border-left: 3px solid #f472b6;
+  padding: 14px 16px; border-radius: 0 12px 12px 0;
+  margin: 0 0 28px;
+}
+
+.readings-section { margin-bottom: 30px; }
+.readings-h {
+  font-family: 'DM Serif Display', serif; font-size: 21px;
+  color: #e8edf5; margin: 0 0 10px;
+}
+.readings-section p { margin: 0 0 12px; }
+.readings-section ul { margin: 0 0 12px; padding-left: 22px; }
+.readings-section li { margin-bottom: 8px; }
+
+/* Spotlight sur 海 */
+.kanji-spotlight {
+  display: flex; gap: 18px; align-items: center;
+  background: #161e2e; border: 1px solid #2a3a54; border-left: 4px solid #38bdf8;
+  border-radius: 14px; padding: 18px 20px; margin: 16px 0;
+}
+.kanji-spotlight-glyph {
+  font-family: 'Noto Serif JP', serif; font-size: 88px; line-height: 1;
+  color: #f472b6; flex-shrink: 0;
+}
+.kanji-spotlight-fr {
+  font-family: 'DM Serif Display', serif; font-size: 22px; color: #e8edf5;
+  font-style: italic; margin-bottom: 8px;
+}
+.kanji-spotlight-readings { display: flex; flex-direction: column; gap: 6px; }
+.ksr-row { display: flex; align-items: baseline; gap: 8px; font-size: 14px; flex-wrap: wrap; }
+.ksr-tag {
+  display: inline-block; min-width: 36px;
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+  padding: 3px 7px; border-radius: 5px; text-align: center;
+}
+.ksr-kun { background: rgba(74,222,128,.18); color: #4ade80; }
+.ksr-on  { background: rgba(56,189,248,.18); color: #38bdf8; }
+.ksr-val { font-weight: 600; color: #e8edf5; }
+.ksr-kana { font-family: 'Noto Serif JP', serif; color: #cbd5e1; }
+.ksr-comment { color: #94a3b8; font-style: italic; font-size: 13.5px; }
+
+/* Règle pratique : deux colonnes côte à côte */
+.rule-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0;
+}
+.rule-card {
+  background: #161e2e; border: 1px solid #2a3a54; border-radius: 14px;
+  padding: 16px;
+}
+.rule-kun { border-left: 4px solid #4ade80; }
+.rule-on  { border-left: 4px solid #38bdf8; }
+.rule-card-head { font-weight: 700; margin-bottom: 6px; font-size: 15px; }
+.rule-kun .rule-card-head { color: #4ade80; }
+.rule-on  .rule-card-head { color: #38bdf8; }
+.rule-card-when { font-size: 13.5px; color: #cbd5e1; margin-bottom: 12px; line-height: 1.55; }
+.rule-card-ex { list-style: none; padding: 0; margin: 0; }
+.rule-card-ex li { display: flex; gap: 10px; align-items: baseline; margin-bottom: 6px; font-size: 13.5px; flex-wrap: wrap; }
+.ex-jp { font-family: 'Noto Serif JP', serif; font-size: 18px; color: #e8edf5; flex-shrink: 0; min-width: 60px; }
+.ex-rom { color: #cbd5e1; }
+
+/* Hokkaido breakdown */
+.readings-hokkaido { background: rgba(56,189,248,.04); border: 1px solid rgba(56,189,248,.18); border-radius: 14px; padding: 18px 20px; }
+.hokkaido-breakdown {
+  display: flex; flex-direction: column; gap: 8px;
+  background: #0f1623; border-radius: 12px; padding: 14px;
+  margin: 12px 0;
+}
+.hb-row {
+  display: grid; grid-template-columns: 60px 1fr auto; gap: 16px;
+  align-items: center; padding: 8px 6px;
+  border-bottom: 1px solid #1c2740;
+}
+.hb-row:last-child { border-bottom: none; }
+.hb-kanji {
+  font-family: 'Noto Serif JP', serif; font-size: 46px; line-height: 1;
+  color: #f472b6; text-align: center;
+}
+.hb-vs { display: flex; flex-direction: column; gap: 4px; font-size: 13.5px; }
+.hb-on, .hb-kun { display: flex; gap: 8px; align-items: baseline; }
+.hb-on strong { color: #38bdf8; font-size: 15px; }
+.hb-meaning { color: #94a3b8; font-size: 13.5px; font-style: italic; text-align: right; }
+
+.hb-result {
+  background: rgba(56,189,248,.10); border-left: 3px solid #38bdf8;
+  border-radius: 0 10px 10px 0; padding: 12px 14px; margin-top: 12px;
+}
+.hb-result-label { font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; margin-bottom: 4px; font-weight: 600; }
+.hb-result-jp { font-family: 'Noto Serif JP', serif; font-size: 24px; color: #e8edf5; margin-bottom: 8px; }
+.hb-result-jp strong { color: #38bdf8; }
+.hb-result-note { font-size: 13.5px; color: #cbd5e1; line-height: 1.55; }
+
+/* Analogie */
+.readings-analogy { }
+.analogy-table {
+  width: 100%; border-collapse: collapse; font-size: 14px;
+  margin: 12px 0; background: #161e2e; border-radius: 12px; overflow: hidden;
+}
+.analogy-table th, .analogy-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #2a3a54; }
+.analogy-table th { background: #1c2740; color: #94a3b8; font-size: 12.5px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+.analogy-table tr:last-child td { border-bottom: none; }
+.analogy-table strong { color: #f9a8d4; font-weight: 700; }
+
+/* Mémo */
+.memo-list { list-style: none; padding: 0; }
+.memo-list li {
+  background: #161e2e; border: 1px solid #2a3a54; border-radius: 10px;
+  padding: 10px 14px; margin-bottom: 8px; font-size: 14px;
+}
+
+.readings-coda {
+  text-align: center; font-size: 14px; color: #cbd5e1;
+  background: rgba(244,114,182,.05); border: 1px dashed rgba(244,114,182,.25);
+  border-radius: 12px; padding: 14px 16px;
+  margin-top: 24px;
+}
+
+@media (max-width: 560px) {
+  .readings-title { font-size: 26px; }
+  .readings-jp { font-size: 18px; display: block; margin: 4px 0 0; }
+  .kanji-spotlight { flex-direction: column; text-align: center; }
+  .kanji-spotlight-glyph { font-size: 72px; }
+  .rule-grid { grid-template-columns: 1fr; }
+  .hb-row { grid-template-columns: 50px 1fr; row-gap: 4px; }
+  .hb-meaning { grid-column: 2; text-align: left; }
+  .hb-kanji { font-size: 36px; }
+  .hb-result-jp { font-size: 20px; }
+  .analogy-table { font-size: 13px; }
+  .analogy-table th, .analogy-table td { padding: 8px 10px; }
 }
 
 /* Carte */
