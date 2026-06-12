@@ -706,14 +706,11 @@ function Quiz() {
 // ════════════════════════════════════════════════════════════════════════
 export default function NamaePage() {
   const [tab, setTab] = useState('explore')
-  // Sur ouverture via Web Share Target, on ne veut PAS analyser « Tokyo » par
-  // défaut : on attend le résultat du share. Sinon, démo avec Tokyo.
-  const [query, setQuery] = useState(() => {
-    if (typeof window === 'undefined') return 'Tokyo'
-    const p = new URLSearchParams(window.location.search)
-    return (p.get('name') || p.get('text') || p.get('url')) ? '' : 'Tokyo'
-  })
-  const [submitted, setSubmitted] = useState(query)
+  // Aucune analyse au chargement : on attend une action utilisateur (clic sur
+  // le bouton « Analyser ce lieu » de la carte, ou un Web Share Target entrant).
+  // Évite un appel Opus parasite à chaque ouverture / refresh de la page.
+  const [query, setQuery] = useState('')
+  const [submitted, setSubmitted] = useState('')
   // Variante en alphabet latin du dernier lieu analysé, quand connue (renvoyée
   // par Nominatim via `name:en`). Affichée à côté du kanji dans la fiche.
   const [submittedLatin, setSubmittedLatin] = useState(null)
