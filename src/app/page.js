@@ -813,6 +813,34 @@ function ReadingsExplainer() {
           Du coup, presque chaque kanji standard a <strong>au moins deux lectures</strong>.
           La question, c'est : laquelle utiliser dans quel cas ?
         </p>
+
+        <div className="schema schema-history">
+          <div className="schema-title">📐 Schéma : comment chaque kanji a fini avec deux lectures</div>
+          <div className="sch-flow">
+            <div className="sch-node sch-native">
+              <div className="sch-when">avant le Ve s.</div>
+              <div className="sch-headline">Le japonais parle déjà</div>
+              <div className="sch-jp-big">うみ</div>
+              <div className="sch-sub">le mot japonais natif pour « la mer »</div>
+            </div>
+            <div className="sch-arrow-h">→</div>
+            <div className="sch-node sch-import">
+              <div className="sch-when">≈ Ve s.</div>
+              <div className="sch-headline">Import de l'écriture chinoise</div>
+              <div className="sch-jp-big">海</div>
+              <div className="sch-sub">+ sa prononciation chinoise <em>hǎi</em></div>
+            </div>
+            <div className="sch-arrow-h">→</div>
+            <div className="sch-node sch-merge">
+              <div className="sch-when">aujourd'hui</div>
+              <div className="sch-headline">海 hérite des deux</div>
+              <div className="sch-double">
+                <div className="sch-half"><span className="ksr-tag ksr-kun">kun</span> <strong>umi</strong> うみ</div>
+                <div className="sch-half"><span className="ksr-tag ksr-on">on</span> <strong>kai</strong> かい</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section className="readings-section">
@@ -864,6 +892,31 @@ function ReadingsExplainer() {
               <li><span className="ex-jp">日本海</span> <span className="ex-rom">Nihonkai</span> — la mer du Japon</li>
               <li><span className="ex-jp">北海道</span> <span className="ex-rom">Hokkaidō</span> — la « route de la mer du Nord »</li>
             </ul>
+          </div>
+        </div>
+
+        <div className="schema schema-decision">
+          <div className="schema-title">📐 Schéma : l'arbre de décision pour 海</div>
+          <div className="dec-root">
+            <div className="dec-glyph">海</div>
+            <div className="dec-prompt">Tu vois 海 quelque part. Comment le lis-tu&nbsp;?</div>
+          </div>
+          <div className="dec-branches">
+            <div className="dec-branch dec-kun">
+              <div className="dec-q">Le kanji est <strong>seul</strong>, ou suivi de hiragana grammatical (の, を, に…), ou dans un mot purement japonais&nbsp;?</div>
+              <div className="dec-answer"><span className="ksr-tag ksr-kun">kun</span> <strong>umi</strong></div>
+              <div className="dec-ex">海 (umi), 海辺 (umibe), 海の音 (umi no oto)</div>
+            </div>
+            <div className="dec-branch dec-kun">
+              <div className="dec-q">Le kanji fait partie d'un <strong>nom propre japonais natif</strong> (toponyme ancien, patronyme)&nbsp;?</div>
+              <div className="dec-answer"><span className="ksr-tag ksr-kun">kun</span> <strong>la lecture native du nom</strong></div>
+              <div className="dec-ex">青海 (Ōmi, toponyme), patronyme 海野 (Unno)</div>
+            </div>
+            <div className="dec-branch dec-on">
+              <div className="dec-q">Le kanji est collé à <strong>1+ autres kanji</strong> dans un <strong>composé sino-japonais</strong> (administratif, savant, scientifique)&nbsp;?</div>
+              <div className="dec-answer"><span className="ksr-tag ksr-on">on</span> <strong>kai</strong></div>
+              <div className="dec-ex">海洋 (kaiyō), 日本海 (Nihonkai), 北海道 (Hokkaidō)</div>
+            </div>
           </div>
         </div>
       </section>
@@ -953,6 +1006,57 @@ function ReadingsExplainer() {
           墨 (sumi, « encre ») + 田 (da, voisée de <em>ta</em>, « rizière »). Le sens des kanji
           n’a parfois plus rien à voir avec le sens du nom — c’est juste un support phonétique.
         </p>
+
+        <div className="schema schema-ateji">
+          <div className="schema-title">📐 Schéma : pourquoi 墨田 = Sumida (et pas boku-den)</div>
+          <div className="atj-step">
+            <div className="atj-num">1</div>
+            <div className="atj-body">
+              <div className="atj-h">Le nom existait DÉJÀ en japonais natif</div>
+              <div className="atj-row"><span className="atj-jp">すみだ</span><span className="atj-tail">→ « sumida », nom d’une rivière, depuis le japonais ancien</span></div>
+            </div>
+          </div>
+          <div className="atj-arrow">↓</div>
+          <div className="atj-step">
+            <div className="atj-num">2</div>
+            <div className="atj-body">
+              <div className="atj-h">On veut l’écrire avec des kanji</div>
+              <div className="atj-explain">On cherche des kanji dont la <strong>kun’yomi</strong> peut transcrire les sons <em>sumi</em> et <em>da</em>.</div>
+            </div>
+          </div>
+          <div className="atj-arrow">↓</div>
+          <div className="atj-step">
+            <div className="atj-num">3</div>
+            <div className="atj-body">
+              <div className="atj-h">Choix des kanji (le sens devient secondaire)</div>
+              <div className="atj-pair">
+                <div className="atj-kanji">
+                  <div className="atj-glyph">墨</div>
+                  <div className="atj-read"><span className="ksr-tag ksr-kun">kun</span> sumi すみ ✓</div>
+                  <div className="atj-mean">sens propre : <em>encre</em> (sans rapport)</div>
+                </div>
+                <div className="atj-plus">+</div>
+                <div className="atj-kanji">
+                  <div className="atj-glyph">田</div>
+                  <div className="atj-read"><span className="ksr-tag ksr-kun">kun</span> ta → <strong>da</strong> (rendaku) ✓</div>
+                  <div className="atj-mean">sens propre : <em>rizière</em> (sans rapport)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="atj-arrow">↓</div>
+          <div className="atj-result">
+            <div className="atj-result-label">Résultat</div>
+            <div className="atj-result-ok">
+              <div className="atj-result-jp">墨田 → <strong>Sumida</strong></div>
+              <div className="atj-result-rule">✓ kun + kun (avec rendaku ta → da)</div>
+            </div>
+            <div className="atj-result-ko">
+              <div className="atj-result-jp">✗ <em>boku·den</em></div>
+              <div className="atj-result-rule">la lecture on’yomi mécanique des kanji isolés — fausse ici</div>
+            </div>
+          </div>
+        </div>
         <div className="toponym-grid">
           <div className="toponym-card">
             <div className="toponym-jp">墨田</div>
@@ -1750,6 +1854,120 @@ const CSS = `
 .toponym-card-irr .toponym-rule { color: #fb923c; }
 .toponym-card-rev .toponym-rule { color: #38bdf8; }
 .toponym-note { font-size: 11.5px; color: #94a3b8; font-style: italic; margin-top: 4px; }
+
+/* ═══ Schémas pédagogiques ════════════════════════════════════════════ */
+.schema {
+  margin: 18px 0 8px;
+  background: #0f1623; border: 1px solid #2a3a54;
+  border-radius: 14px; padding: 16px 18px;
+}
+.schema-title {
+  font-size: 11.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: #94a3b8; margin-bottom: 14px;
+}
+
+/* Schéma 1 : flux historique */
+.sch-flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 8px; align-items: stretch; }
+.sch-node {
+  background: #161e2e; border: 1px solid #2a3a54; border-radius: 12px;
+  padding: 12px; text-align: center; display: flex; flex-direction: column; justify-content: space-between;
+}
+.sch-native { border-left: 4px solid #4ade80; }
+.sch-import { border-left: 4px solid #38bdf8; }
+.sch-merge  { border-left: 4px solid #f472b6; }
+.sch-when { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: #64748b; margin-bottom: 6px; }
+.sch-headline { font-size: 12.5px; font-weight: 600; color: #cbd5e1; margin-bottom: 8px; }
+.sch-jp-big { font-family: 'Noto Serif JP', serif; font-size: 36px; color: #e8edf5; line-height: 1; margin: 6px 0; }
+.sch-sub { font-size: 11.5px; color: #94a3b8; font-style: italic; line-height: 1.4; }
+.sch-double { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.sch-half { font-size: 13px; color: #e8edf5; }
+.sch-half .ksr-tag { margin-right: 6px; vertical-align: middle; }
+.sch-arrow-h { display: flex; align-items: center; font-size: 22px; color: #f472b6; padding: 0 2px; font-weight: 700; }
+
+/* Schéma 2 : arbre de décision */
+.dec-root {
+  text-align: center; padding: 10px 14px;
+  background: rgba(244,114,182,.06); border: 1px solid rgba(244,114,182,.3); border-radius: 12px;
+  margin-bottom: 10px;
+}
+.dec-glyph { font-family: 'Noto Serif JP', serif; font-size: 38px; color: #f472b6; line-height: 1; margin-bottom: 4px; }
+.dec-prompt { font-size: 13px; color: #e8edf5; font-style: italic; }
+.dec-branches { display: flex; flex-direction: column; gap: 10px; }
+.dec-branch {
+  display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start;
+  background: #161e2e; border: 1px solid #2a3a54; border-radius: 12px;
+  padding: 12px 14px;
+}
+.dec-branch.dec-kun { border-left: 4px solid #4ade80; }
+.dec-branch.dec-on  { border-left: 4px solid #38bdf8; }
+.dec-q { font-size: 13px; color: #cbd5e1; line-height: 1.5; }
+.dec-answer { font-size: 13.5px; color: #e8edf5; white-space: nowrap; align-self: center; }
+.dec-answer .ksr-tag { margin-right: 6px; vertical-align: middle; }
+.dec-ex { grid-column: 1 / -1; font-family: 'Noto Serif JP', serif; font-size: 13.5px; color: #cbd5e1; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #2a3a54; }
+
+/* Schéma 3 : mécanisme ateji pour Sumida */
+.schema-ateji { background: rgba(74,222,128,.04); border-color: rgba(74,222,128,.25); }
+.atj-step {
+  display: grid; grid-template-columns: 44px 1fr; gap: 14px;
+  align-items: start;
+  background: #161e2e; border: 1px solid #2a3a54; border-radius: 12px;
+  padding: 12px 14px;
+}
+.atj-num {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: #4ade80; color: #0f1623;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 16px;
+}
+.atj-h { font-weight: 700; color: #e8edf5; font-size: 14px; margin-bottom: 6px; }
+.atj-explain { font-size: 13px; color: #cbd5e1; line-height: 1.55; }
+.atj-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.atj-jp { font-family: 'Noto Serif JP', serif; font-size: 26px; color: #f472b6; line-height: 1.1; }
+.atj-tail { font-size: 13px; color: #cbd5e1; font-style: italic; }
+.atj-arrow {
+  text-align: center; font-size: 22px; color: #4ade80; font-weight: 700;
+  padding: 4px 0; margin: 4px 0 4px 22px;
+}
+.atj-pair { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; margin-top: 8px; }
+.atj-kanji {
+  background: #0f1623; border: 1px solid #2a3a54; border-radius: 10px;
+  padding: 10px; text-align: center;
+}
+.atj-glyph { font-family: 'Noto Serif JP', serif; font-size: 44px; color: #f472b6; line-height: 1; margin-bottom: 6px; }
+.atj-read { font-size: 12.5px; color: #e8edf5; margin-bottom: 4px; }
+.atj-read .ksr-tag { margin-right: 6px; vertical-align: middle; }
+.atj-mean { font-size: 11px; color: #94a3b8; font-style: italic; }
+.atj-plus { font-size: 22px; color: #f472b6; font-weight: 700; }
+
+.atj-result {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  background: #0f1623; border: 1px solid #2a3a54; border-radius: 12px;
+  padding: 12px 14px;
+}
+.atj-result-label {
+  grid-column: 1 / -1;
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: #94a3b8; margin-bottom: 4px;
+}
+.atj-result-ok, .atj-result-ko { padding: 10px; border-radius: 8px; }
+.atj-result-ok { background: rgba(74,222,128,.10); border-left: 3px solid #4ade80; }
+.atj-result-ko { background: rgba(248,113,113,.08); border-left: 3px solid #f87171; }
+.atj-result-jp { font-family: 'Noto Serif JP', serif; font-size: 22px; color: #e8edf5; margin-bottom: 6px; line-height: 1.2; }
+.atj-result-ok .atj-result-jp strong { color: #4ade80; }
+.atj-result-ko .atj-result-jp { color: #fca5a5; font-size: 18px; }
+.atj-result-rule { font-size: 12px; color: #cbd5e1; line-height: 1.5; }
+
+@media (max-width: 560px) {
+  .sch-flow { grid-template-columns: 1fr; }
+  .sch-arrow-h { transform: rotate(90deg); justify-self: center; padding: 4px 0; }
+  .dec-branch { grid-template-columns: 1fr; }
+  .dec-answer { white-space: normal; }
+  .atj-pair { grid-template-columns: 1fr; }
+  .atj-plus { transform: rotate(90deg); }
+  .atj-result { grid-template-columns: 1fr; }
+  .atj-jp { font-size: 22px; }
+  .atj-result-jp { font-size: 18px; }
+}
 
 /* ═══ Page MON ESPACE ════════════════════════════════════════════════ */
 .profile-page { font-size: 14.5px; line-height: 1.6; color: #e8edf5; }
