@@ -6,8 +6,9 @@ import { decompose, mapEmbedUrl } from '@/lib/japan/parser'
 
 const ROLE_LABEL = { prefix: 'Préfixe', core: 'Nom principal', suffix: 'Suffixe' }
 const EXAMPLES = ['Tokyo', 'Kyoto', '金沢', 'Hiroshima', 'Shinjuku', 'Taitō', 'Nagasaki', '明治神宮', 'Fukuoka']
-const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
-const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+const MAPLIBRE_JS = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'
+const MAPLIBRE_CSS = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css'
+const MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron'
 
 // Reverse-geocoding via Nominatim (OpenStreetMap) — libre, sans clé. On demande
 // les détails de nommage (`namedetails=1`) pour récupérer en une seule requête
@@ -116,8 +117,10 @@ function KanjiCard({ comp, big, reading }) {
 }
 
 // ── Carte interactive : l'utilisateur centre le lieu visé, on reverse-geocode
-//    le centre de la carte via Nominatim (libellé japonais quand dispo). Leaflet
-//    est chargé à la volée depuis unpkg (libre, pas de clé, pas de npm dep).
+//    le centre via Nominatim (kanji + romaji). MapLibre GL JS rend des tuiles
+//    vectorielles d'OpenFreeMap (libre, sans clé) : on récrit le style des
+//    labels pour empiler `name:ja` au-dessus et `name:en` (ou `name:latin`)
+//    en-dessous, donc chaque étiquette est bilingue sur la carte elle-même.
 function MapPicker({ runRef }) {
   const containerRef = useRef(null)
   const [loading, setLoading] = useState(true)
@@ -129,42 +132,74 @@ function MapPicker({ runRef }) {
     let debounce = null
     let lastQuery = null
 
-    async function ensureLeaflet() {
-      if (window.L) return
-      if (!document.getElementById('leaflet-css')) {
+    async function ensureMaplibre() {
+      if (window.maplibregl) return
+      if (!document.getElementById('maplibre-css')) {
         const css = document.createElement('link')
-        css.id = 'leaflet-css'
+        css.id = 'maplibre-css'
         css.rel = 'stylesheet'
-        css.href = LEAFLET_CSS
+        css.href = MAPLIBRE_CSS
         document.head.appendChild(css)
       }
       await new Promise((resolve, reject) => {
-        const existing = document.getElementById('leaflet-js')
+        const existing = document.getElementById('maplibre-js')
         if (existing) { existing.addEventListener('load', resolve); existing.addEventListener('error', reject); return }
         const s = document.createElement('script')
-        s.id = 'leaflet-js'
-        s.src = LEAFLET_JS
+        s.id = 'maplibre-js'
+        s.src = MAPLIBRE_JS
         s.onload = resolve
         s.onerror = reject
         document.head.appendChild(s)
       })
     }
 
+    // Empile `name:ja` (gros) au-dessus, `name:en`/`name:latin` (petit) dessous.
+    // Hors Japon, retombe sur le nom local pour rester lisible.
+    function bilingualTextField() {
+      return [
+        'case',
+        ['all', ['has', 'name:ja'], ['any', ['has', 'name:en'], ['has', 'name:latin']]],
+        [
+          'format',
+          ['get', 'name:ja'], {},
+          '\n', {},
+          ['coalesce', ['get', 'name:en'], ['get', 'name:latin']], { 'font-scale': 0.75 },
+        ],
+        ['coalesce', ['get', 'name:ja'], ['get', 'name:latin'], ['get', 'name:en'], ['get', 'name']],
+      ]
+    }
+
+    function applyBilingualLabels() {
+      const layers = map.getStyle().layers || []
+      for (const layer of layers) {
+        if (layer.type !== 'symbol') continue
+        if (!layer.layout || !('text-field' in layer.layout)) continue
+        try { map.setLayoutProperty(layer.id, 'text-field', bilingualTextField()) } catch {}
+      }
+    }
+
     async function init() {
-      try {
-        await ensureLeaflet()
-      } catch {
+      try { await ensureMaplibre() } catch {
         if (!cancelled) setHint('Impossible de charger la carte (réseau ?).')
         return
       }
       if (cancelled || !containerRef.current) return
-      const L = window.L
-      map = L.map(containerRef.current, { center: [35.6762, 139.6503], zoom: 11, zoomControl: true })
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap',
-      }).addTo(map)
-      setLoading(false)
+      const ml = window.maplibregl
+      map = new ml.Map({
+        container: containerRef.current,
+        style: MAP_STYLE,
+        center: [139.6503, 35.6762], // Tokyo (lng, lat — ordre MapLibre)
+        zoom: 10,
+        attributionControl: true,
+      })
+      map.addControl(new ml.NavigationControl({ showCompass: false }), 'top-right')
+
+      map.on('load', () => {
+        setLoading(false)
+        applyBilingualLabels()
+      })
+      // Le style peut changer (resize, etc.) — on réapplique au besoin.
+      map.on('styledata', () => { if (map.isStyleLoaded()) applyBilingualLabels() })
 
       map.on('moveend', () => {
         clearTimeout(debounce)
@@ -175,7 +210,7 @@ function MapPicker({ runRef }) {
           const found = await reverseGeocode(c.lat, c.lng, z)
           if (!found) { setHint('Aucun lieu nommé au centre — déplace ou zoome encore.'); return }
           const label = found.en ? `📍 ${found.ja} — ${found.en}` : `📍 ${found.ja}`
-          const key = found.ja + '@' + z
+          const key = found.ja + '@' + Math.round(z)
           if (key === lastQuery) { setHint(label); return }
           lastQuery = key
           setHint(label)
@@ -687,7 +722,8 @@ const CSS = `
   border: 1px solid #2a3a54; border-radius: 14px; overflow: hidden;
   background: #161e2e;
 }
-.map-picker-canvas .leaflet-tile-pane { filter: brightness(0.75) saturate(0.85); }
+.map-picker-canvas .maplibregl-canvas { filter: brightness(0.85) contrast(1.05); }
+.maplibregl-ctrl-attrib { font-size: 10px; opacity: 0.7; }
 .map-picker-crosshair {
   position: absolute; top: 50%; left: 50%;
   transform: translate(-50%, -50%);
