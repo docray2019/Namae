@@ -230,13 +230,25 @@ function MapPicker({ runRef }) {
   return (
     <div className="map-picker">
       <div ref={containerRef} className="map-picker-canvas" />
-      <div className="map-picker-crosshair" aria-hidden>⊕</div>
+
+      {/* Étiquette centrale qui suit le centre de la carte : kanji + romaji du
+          lieu courant. Remplace la mire — elle indique la cible ET donne le
+          résultat de l'identification d'un coup d'œil. */}
+      <div className="map-picker-overlay" aria-live="polite">
+        {candidate ? (
+          <>
+            <div className="map-picker-overlay-ja">{candidate.ja}</div>
+            {candidate.en && <div className="map-picker-overlay-en">{candidate.en}</div>}
+          </>
+        ) : (
+          <div className="map-picker-overlay-placeholder">⊙ centre la cible sur un lieu</div>
+        )}
+      </div>
+
       {loading && <div className="map-picker-loading">Chargement de la carte…</div>}
+
       {candidate ? (
-        <div className="map-picker-found">
-          <div className="map-picker-found-label">📍 Lieu identifié</div>
-          <div className="map-picker-found-ja">{candidate.ja}</div>
-          {candidate.en && <div className="map-picker-found-en">{candidate.en}</div>}
+        <div className="map-picker-confirm-wrap">
           <button
             className="map-picker-confirm"
             onClick={() => runRef.current?.(candidate.ja, candidate.en)}
@@ -791,47 +803,53 @@ const CSS = `
 }
 .map-picker-canvas .maplibregl-canvas { filter: brightness(0.85) contrast(1.05); }
 .maplibregl-ctrl-attrib { font-size: 10px; opacity: 0.7; }
-.map-picker-crosshair {
+
+/* Étiquette centrale superposée à la carte (remplace la mire). */
+.map-picker-overlay {
   position: absolute; top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 28px; color: #f472b6; font-weight: 700;
-  text-shadow: 0 0 4px #0f1623, 0 0 8px #0f1623;
+  display: flex; flex-direction: column; align-items: center;
   pointer-events: none; z-index: 500; user-select: none;
+  text-align: center;
+}
+.map-picker-overlay-ja {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 38px; line-height: 1.1; font-weight: 600;
+  color: #f472b6;
+  text-shadow:
+    0 0 3px #0f1623, 0 0 6px #0f1623, 0 0 10px #0f1623,
+    -1px -1px 0 rgba(15,22,35,.9), 1px 1px 0 rgba(15,22,35,.9);
+}
+.map-picker-overlay-en {
+  font-family: 'DM Serif Display', serif;
+  font-size: 16px; font-style: italic;
+  color: #fdf2f8; margin-top: 2px;
+  text-shadow: 0 0 3px #0f1623, 0 0 6px #0f1623, -1px -1px 0 rgba(15,22,35,.9), 1px 1px 0 rgba(15,22,35,.9);
+}
+.map-picker-overlay-placeholder {
+  font-size: 13px; font-weight: 500;
+  color: rgba(244,114,182,.85);
+  text-shadow: 0 0 4px #0f1623, 0 0 8px #0f1623;
+  letter-spacing: .02em;
 }
 .map-picker-loading {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  font-size: 13px; color: #94a3b8;
+  position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+  font-size: 13px; color: #e8edf5;
+  background: rgba(15,22,35,.75); padding: 4px 12px; border-radius: 999px;
 }
 .map-picker-hint {
   font-size: 13px; color: #94a3b8; line-height: 1.5;
   margin-top: 10px; padding: 0 4px;
 }
-.map-picker-found {
-  display: flex; flex-direction: column; align-items: center;
-  text-align: center; gap: 6px;
-  margin-top: 12px; padding: 18px 16px 20px;
-  background: linear-gradient(180deg, rgba(244,114,182,.10) 0%, rgba(244,114,182,.03) 100%);
-  border: 1px solid rgba(244,114,182,.35); border-radius: 16px;
+.map-picker-confirm-wrap {
+  display: flex; justify-content: center; margin-top: 12px;
   animation: foundIn .2s ease-out;
 }
 @keyframes foundIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
-.map-picker-found-label {
-  font-size: 11px; font-weight: 600; text-transform: uppercase;
-  letter-spacing: .08em; color: #f9a8d4;
-}
-.map-picker-found-ja {
-  font-family: 'Noto Serif JP', serif; font-size: 42px; line-height: 1.1;
-  color: #f472b6; font-weight: 600; margin-top: 4px;
-}
-.map-picker-found-en {
-  font-family: 'DM Serif Display', serif; font-size: 18px; color: #e8edf5;
-  font-style: italic; opacity: 0.85;
-}
 .map-picker-confirm {
-  margin-top: 10px;
   font-family: inherit; font-size: 15px; font-weight: 600;
   background: #f472b6; color: #0f1623; border: none;
-  padding: 11px 24px; border-radius: 999px; cursor: pointer;
+  padding: 11px 26px; border-radius: 999px; cursor: pointer;
   box-shadow: 0 6px 18px rgba(244,114,182,.30);
   transition: filter .15s, transform .12s;
 }
@@ -839,8 +857,8 @@ const CSS = `
 .map-picker-confirm:active { transform: translateY(0); }
 
 @media (max-width: 560px) {
-  .map-picker-found-ja { font-size: 34px; }
-  .map-picker-found-en { font-size: 16px; }
+  .map-picker-overlay-ja { font-size: 32px; }
+  .map-picker-overlay-en { font-size: 14px; }
 }
 
 /* Recherche */
