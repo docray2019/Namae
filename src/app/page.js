@@ -331,21 +331,10 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef }) {
     <div>
       <MapPicker runRef={runRef} />
       <p className="howto">
-        💡 Ou colle le nom d’un lieu depuis <strong>Google Maps</strong> ci-dessous
-        (le bouton <strong>📋 Coller</strong> en haut à droite résout aussi les liens Maps).
+        💡 Centre un lieu sur la carte et clique <strong>« Analyser ce lieu »</strong>.
+        Tu peux aussi piocher un exemple ci-dessous, ou utiliser le bouton <strong>📋 Coller</strong>
+        en haut à droite (pour un nom copié depuis Google Maps).
       </p>
-      <div className="search">
-        <input
-          id="namae-input"
-          className="search-input"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && run()}
-          placeholder="Nom d’un lieu japonais (romaji ou kanji) — ex. Kamakura, 渋谷…"
-          autoFocus
-        />
-        <button className="search-btn" onClick={() => run()}>Analyser</button>
-      </div>
 
       <div className="chips">
         {EXAMPLES.map((ex) => (
@@ -662,9 +651,7 @@ export default function NamaePage() {
       if (urlMatch) { run(urlMatch[0]); return }
       showToast('Presse-papiers : aucun nom de lieu détecté.')
     } catch {
-      showToast('Autorisez le presse-papiers, ou collez dans le champ (Ctrl/Cmd + V).')
-      const el = document.getElementById('namae-input')
-      if (el) el.focus()
+      showToast('Autorisez le presse-papiers, ou pioche un lieu sur la carte.')
     }
   }
 
@@ -685,10 +672,6 @@ export default function NamaePage() {
     setTab('explore')
 
     const cleanUrl = () => window.history.replaceState({}, '', window.location.pathname)
-    const focusInput = () => {
-      showToast('Lien Maps reçu — tapez le nom du lieu dans le champ ↓')
-      setTimeout(() => document.getElementById('namae-input')?.focus(), 80)
-    }
 
     // 1) Nom trouvable côté client (titre / texte / URL longue Maps) → on lance.
     const name = firstUsefulLine(payload)
@@ -698,8 +681,8 @@ export default function NamaePage() {
     const urlMatch = payload.match(/https?:\/\/\S+/i)
     if (urlMatch) { run(urlMatch[0]); cleanUrl(); return }
 
-    // 3) Rien d'exploitable → fallback champ texte.
-    focusInput()
+    // 3) Rien d'exploitable → message.
+    showToast('Lien Maps reçu — pioche un lieu sur la carte.')
     cleanUrl()
   }, [])
 
