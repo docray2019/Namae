@@ -319,27 +319,34 @@ const HAS_KANJI = /[㐀-鿿豈-﫿]/
 const ROLE_COLOR = { prefix: '#fb923c', core: '#f472b6', suffix: '#2dd4bf' }
 
 // Pastille compacte d'un segment renvoyé par l'IA (préfixe / nom principal / suffixe).
+// Les suffixes sont volontairement plus petits et badgés — ils ne portent pas
+// l'identité du lieu, juste sa fonction administrative ou topographique.
 function AiSegment({ part }) {
   const color = ROLE_COLOR[part.role] || '#64748b'
+  const isSuffix = part.role === 'suffix'
+  const reading = isSuffix && part.reading ? `-${part.reading}` : part.reading
   return (
-    <div className="seg" style={{ borderColor: color }}>
+    <div className={`seg ${isSuffix ? 'is-suffix' : ''}`} style={{ borderColor: color, ...(isSuffix ? { background: `${color}1a` } : null) }}>
       <div className="seg-role" style={{ color }}>{ROLE_LABEL[part.role] || part.role}</div>
       <div className="seg-kanji" style={{ color }}>{part.text}</div>
-      <div className="seg-reading">{part.reading}</div>
+      <div className="seg-reading">{reading}</div>
       <div className="seg-fr">{part.fr}</div>
     </div>
   )
 }
 
 // Fiche détaillée d'un segment, avec note pédagogique de l'IA.
+// Les suffixes ont aussi une présentation plus compacte (glyph et corps réduits).
 function AiPartCard({ part }) {
   const color = ROLE_COLOR[part.role] || '#64748b'
+  const isSuffix = part.role === 'suffix'
+  const reading = isSuffix && part.reading ? `-${part.reading}` : part.reading
   return (
-    <div className="kcard" style={{ borderColor: color }}>
+    <div className={`kcard ${isSuffix ? 'is-suffix' : ''}`} style={{ borderColor: color, ...(isSuffix ? { background: `${color}14` } : null) }}>
       <div className="kcard-glyph" style={{ color }}>{part.text}</div>
       <div className="kcard-body">
         <div className="kcard-top">
-          <span className="kcard-romaji">{part.reading}</span>
+          <span className="kcard-romaji">{reading}</span>
           <span className="kcard-cat" style={{ background: color }}>{ROLE_LABEL[part.role] || part.role}</span>
         </div>
         <div className="kcard-fr">{part.fr}</div>
@@ -955,6 +962,23 @@ const CSS = `
 .seg-kanji { font-family: 'Noto Serif JP', serif; font-size: 44px; line-height: 1; margin-bottom: 8px; }
 .seg-reading { font-size: 14px; color: #e8edf5; font-weight: 500; }
 .seg-fr { font-size: 12.5px; color: #94a3b8; margin-top: 2px; }
+
+/* Suffixes : plus petits et clairement badgés (fond teinté + bordure forte). */
+.seg.is-suffix {
+  flex: 0 0 auto; min-width: 96px;
+  padding: 10px 12px;
+  border-width: 1.5px;
+  border-radius: 999px;
+  align-self: center;
+}
+.seg.is-suffix .seg-role { font-size: 10px; margin-bottom: 4px; }
+.seg.is-suffix .seg-kanji { font-size: 28px; margin-bottom: 4px; }
+.seg.is-suffix .seg-reading { font-size: 12.5px; font-weight: 600; opacity: 0.95; }
+.seg.is-suffix .seg-fr { font-size: 11.5px; margin-top: 0; }
+
+.kcard.is-suffix { padding: 10px 14px; }
+.kcard.is-suffix .kcard-glyph { font-size: 36px; width: 48px; }
+.kcard.is-suffix .kcard-romaji { font-size: 15px; }
 
 .empty { color: #94a3b8; font-size: 14px; margin: 16px 0 0; line-height: 1.6; }
 .inline-ex { background: none; border: none; color: #f472b6; cursor: pointer; font: inherit; padding: 0; text-decoration: underline; }
