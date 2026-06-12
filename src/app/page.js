@@ -431,6 +431,11 @@ function AiPartCard({ part, onShowReadings }) {
                 d’origine japonaise du kanji, qui rendait dans l’écriture chinoise importée un mot déjà existant
                 en japonais. On l’utilise typiquement quand le kanji est <strong>seul</strong> ou dans un mot
                 d’origine purement japonaise. Ex. <span className="krd-ex">海 → umi (« la mer »)</span>.
+                <div className="krd-mirror">
+                  <span className="ksr-tag ksr-on">vs on</span>
+                  Le même kanji 海 se prononce <strong>kai</strong> en on’yomi quand il est dans un
+                  composé sino-japonais — ex. <span className="krd-ex">北海道 → Hok·<strong>kai</strong>·dō</span>.
+                </div>
                 {onShowReadings && (
                   <button type="button" className="krd-more" onClick={onShowReadings}>
                     📚 Tout comprendre kun ↔ on avec Hokkaidō →
@@ -444,6 +449,11 @@ function AiPartCard({ part, onShowReadings }) {
                 japonaise de la prononciation chinoise médiévale du caractère, emportée avec le caractère lors
                 de son emprunt. On la trouve surtout dans les <strong>composés savants</strong> de deux kanji
                 ou plus. Ex. <span className="krd-ex">海洋 → kaiyō (« l’océan ») — 海 se lit kai</span>.
+                <div className="krd-mirror">
+                  <span className="ksr-tag ksr-kun">vs kun</span>
+                  Le même kanji 海 se prononce <strong>umi</strong> en kun’yomi quand il est <strong>seul</strong>
+                  ou dans un mot natif — ex. <span className="krd-ex">海 → umi (« la mer »)</span>.
+                </div>
                 {onShowReadings && (
                   <button type="button" className="krd-more" onClick={onShowReadings}>
                     📚 Tout comprendre kun ↔ on avec Hokkaidō →
@@ -1479,6 +1489,14 @@ const CSS = `
   font-family: 'Noto Serif JP', serif;
   background: rgba(15,22,35,.6); padding: 1px 7px; border-radius: 4px;
 }
+.krd-mirror {
+  margin-top: 10px; padding: 8px 10px;
+  background: rgba(15,22,35,.55);
+  border: 1px dashed rgba(148,163,184,.35);
+  border-radius: 8px;
+  font-size: 12.5px; color: #cbd5e1; line-height: 1.55;
+}
+.krd-mirror .ksr-tag { margin-right: 8px; vertical-align: middle; }
 
 .krd-choice {
   margin-top: 8px; padding-left: 8px;
