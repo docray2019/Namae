@@ -512,7 +512,18 @@ function AiPartCard({ part, onShowReadings }) {
 // ════════════════════════════════════════════════════════════════════════
 //  Mode EXPLORER
 // ════════════════════════════════════════════════════════════════════════
-function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onShowReadings, onAnalyzed }) {
+// Détecte une paire « lat, lng » saisie ou collée (avec espaces et virgule).
+function detectCoords(s) {
+  const m = (s || '').match(/^\s*(-?\d{1,3}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)\s*$/)
+  if (!m) return null
+  const lat = parseFloat(m[1])
+  const lng = parseFloat(m[2])
+  if (Number.isNaN(lat) || Number.isNaN(lng)) return null
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null
+  return { lat, lng }
+}
+
+function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onShowReadings, onAnalyzed, showToast }) {
   // L'analyse étymologique est déléguée à un appel serveur (Claude Opus 4.7).
   // On envoie kanji + latin séparés quand on les a (typiquement depuis la carte
   // via Nominatim), sinon on devine d'après le script de l'entrée.
@@ -554,12 +565,71 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onS
 
   const data = analysis.data
 
+  // Soumet une valeur tapée / collée. Gère trois cas :
+  //   • paire « lat, lng » → reverse-geocode Nominatim → analyse du nom trouvé
+  //   • URL Maps           → run() la résoudra côté serveur via /api/resolve-maps
+  //   • nom ou kanji       → run() direct
+  async function submitTyped(raw) {
+    const v = (raw || '').trim()
+    if (!v) return
+    const coords = detectCoords(v)
+    if (coords) {
+      showToast?.('Recherche du lieu à ces coordonnées…')
+      const found = await reverseGeocode(coords.lat, coords.lng, 13)
+      if (found?.ja) {
+        run(found.ja, found.en)
+        showToast?.(`📍 ${found.en ? `${found.ja} — ${found.en}` : found.ja}`)
+      } else {
+        showToast?.('Aucun lieu nommé n’a été trouvé à ces coordonnées.')
+      }
+      return
+    }
+    run(v)
+  }
+
   return (
     <div>
       <MapPicker runRef={runRef} />
       <p className="howto">
         💡 Centre un lieu sur la carte (le nom s’affiche au centre) puis clique <strong>« Analyser ce lieu »</strong>.
+        Ou tape un nom / colle un lien Maps / des coordonnées ci-dessous.
       </p>
+
+      <div className="search-row">
+        <button
+          type="button"
+          className="paste-mini"
+          onClick={async () => {
+            try {
+              const text = (await navigator.clipboard.readText()) || ''
+              const v = text.trim()
+              if (!v) { showToast?.('Presse-papiers vide.'); return }
+              setQuery(v)
+              await submitTyped(v)
+            } catch {
+              showToast?.('Autorisez le presse-papiers, ou colle dans le champ (Ctrl/Cmd + V).')
+            }
+          }}
+          title="Coller depuis le presse-papiers et analyser"
+          aria-label="Coller depuis le presse-papiers"
+        >📋</button>
+        <input
+          type="text"
+          className="search-input"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && submitTyped(query)}
+          placeholder="Tokyo, 渋谷, https://maps.app.goo.gl/…, ou 35.66, 139.70"
+          autoComplete="off"
+          spellCheck="false"
+        />
+        <button
+          type="button"
+          className="search-btn-mini"
+          onClick={() => submitTyped(query)}
+          disabled={!query.trim()}
+        >Analyser</button>
+      </div>
 
       {analysis.loading && (
         <div className="card ai-loading">
@@ -1421,7 +1491,7 @@ export default function NamaePage() {
         </nav>
 
         <main className="main">
-          {tab === 'explore' && <Explorer query={query} setQuery={setQuery} submitted={submitted} submittedLatin={submittedLatin} run={run} runRef={runRef} onShowReadings={() => setTab('readings')} onAnalyzed={() => setHistoryTick((t) => t + 1)} />}
+          {tab === 'explore' && <Explorer query={query} setQuery={setQuery} submitted={submitted} submittedLatin={submittedLatin} run={run} runRef={runRef} onShowReadings={() => setTab('readings')} onAnalyzed={() => setHistoryTick((t) => t + 1)} showToast={showToast} />}
           {tab === 'readings' && <ReadingsExplainer />}
           {tab === 'learn' && <Learn />}
           {tab === 'quiz' && <Quiz />}
@@ -1480,6 +1550,31 @@ const CSS = `
   border-radius: 12px; padding: 12px 16px; margin: 0 0 16px;
 }
 .howto strong { color: #f9a8d4; font-weight: 600; }
+
+/* Ligne de saisie : 📋 + input + Analyser */
+.search-row { display: flex; gap: 8px; margin: 0 0 18px; align-items: stretch; }
+.paste-mini {
+  font-size: 18px; line-height: 1;
+  background: #161e2e; color: #f9a8d4; border: 1px solid #2a3a54;
+  border-radius: 10px; padding: 0 12px; cursor: pointer;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.paste-mini:hover { border-color: #f472b6; color: #f472b6; background: #1c2740; }
+.search-input {
+  flex: 1; min-width: 0;
+  font-family: inherit; font-size: 14.5px;
+  background: #161e2e; color: #e8edf5; border: 1px solid #2a3a54;
+  border-radius: 10px; padding: 10px 14px; outline: none;
+}
+.search-input:focus { border-color: #f472b6; }
+.search-input::placeholder { color: #64748b; font-size: 13px; }
+.search-btn-mini {
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  background: #f472b6; color: #0f1623; border: none;
+  border-radius: 10px; padding: 0 18px; cursor: pointer; transition: filter .15s;
+}
+.search-btn-mini:hover:not(:disabled) { filter: brightness(1.08); }
+.search-btn-mini:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* Sélecteur de lieu par carte (Leaflet + Nominatim) */
 .map-picker { position: relative; margin: 0 0 16px; }
