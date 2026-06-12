@@ -13,6 +13,23 @@ const MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron'
 // ── Stockage local (historique des analyses + préférences) ─────────────────
 const HISTORY_KEY = 'namae_history_v1'
 const HISTORY_MAX = 50
+const MAP_VIEW_KEY = 'namae_map_view_v1'
+
+function loadMapView() {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.localStorage.getItem(MAP_VIEW_KEY)
+    if (!raw) return null
+    const v = JSON.parse(raw)
+    if (typeof v?.lng !== 'number' || typeof v?.lat !== 'number' || typeof v?.zoom !== 'number') return null
+    return v
+  } catch { return null }
+}
+
+function saveMapView(lng, lat, zoom) {
+  if (typeof window === 'undefined') return
+  try { window.localStorage.setItem(MAP_VIEW_KEY, JSON.stringify({ lng, lat, zoom })) } catch {}
+}
 
 function loadHistory() {
   if (typeof window === 'undefined') return []
@@ -268,11 +285,14 @@ function MapPicker({ runRef }) {
       }
       if (cancelled || !containerRef.current) return
       const ml = window.maplibregl
+      // On reprend la dernière vue sauvegardée localement (pan + zoom).
+      // Première visite ou cache vidé → on retombe sur Tokyo.
+      const saved = loadMapView()
       map = new ml.Map({
         container: containerRef.current,
         style: MAP_STYLE,
-        center: [139.6503, 35.6762],
-        zoom: 10,
+        center: saved ? [saved.lng, saved.lat] : [139.6503, 35.6762],
+        zoom: saved ? saved.zoom : 10,
         attributionControl: true,
       })
       map.addControl(new ml.NavigationControl({ showCompass: false }), 'top-right')
@@ -290,6 +310,10 @@ function MapPicker({ runRef }) {
       // L'analyse Opus n'est jamais lancée tant que le bouton n'est pas cliqué.
       map.on('movestart', () => setCandidate(null))
       map.on('moveend', () => {
+        // Mémorisation immédiate de la vue courante (pan + zoom) — utilisé
+        // au prochain chargement pour reprendre là où on s'était arrêté.
+        const c = map.getCenter()
+        saveMapView(c.lng, c.lat, map.getZoom())
         clearTimeout(debounce)
         debounce = setTimeout(async () => {
           // 1) Lecture des labels rendus
