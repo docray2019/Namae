@@ -436,6 +436,14 @@ function AiPartCard({ part, onShowReadings }) {
                   Le même kanji 海 se prononce <strong>kai</strong> en on’yomi quand il est dans un
                   composé sino-japonais — ex. <span className="krd-ex">北海道 → Hok·<strong>kai</strong>·dō</span>.
                 </div>
+                <div className="krd-warning">
+                  ⚠️ <strong>Cas des noms propres</strong> (lieux, familles) : ils gardent presque toujours la
+                  kun’yomi, même collés à d’autres kanji, parce qu’ils transcrivent un mot japonais natif
+                  pré-existant. Ex. <span className="krd-ex">墨田 → <strong>Sumida</strong></span> (et pas
+                  « boku-den »), <span className="krd-ex">山田 → <strong>Yamada</strong></span>,
+                  <span className="krd-ex">渋谷 → <strong>Shibuya</strong></span>. Le kanji ne fait que
+                  noter le son du nom déjà existant.
+                </div>
                 {onShowReadings && (
                   <button type="button" className="krd-more" onClick={onShowReadings}>
                     📚 Tout comprendre kun ↔ on avec Hokkaidō →
@@ -453,6 +461,12 @@ function AiPartCard({ part, onShowReadings }) {
                   <span className="ksr-tag ksr-kun">vs kun</span>
                   Le même kanji 海 se prononce <strong>umi</strong> en kun’yomi quand il est <strong>seul</strong>
                   ou dans un mot natif — ex. <span className="krd-ex">海 → umi (« la mer »)</span>.
+                </div>
+                <div className="krd-warning">
+                  ⚠️ <strong>Cas des noms propres</strong> : un toponyme ou un patronyme japonais natif garde
+                  la kun’yomi même s’il combine plusieurs kanji. <span className="krd-ex">山田 → Yamada</span>
+                  (et pas san-den), <span className="krd-ex">墨田 → Sumida</span> (et pas boku-den). La règle
+                  « 2 kanji = on » ne s’applique pas aux noms propres japonais natifs.
                 </div>
                 {onShowReadings && (
                   <button type="button" className="krd-more" onClick={onShowReadings}>
@@ -923,15 +937,82 @@ function ReadingsExplainer() {
         </p>
       </section>
 
+      <section className="readings-section readings-toponyms">
+        <h3 className="readings-h">6. La grande exception : les noms propres</h3>
+        <p>
+          C’est <strong>le piège</strong> du japonais pour qui débute. La règle « deux kanji collés
+          → on’yomi » donnerait pour 墨田 quelque chose comme <em>boku-den</em>… mais le quartier
+          se prononce <strong>Sumida</strong>. Pour 山田 ce serait <em>san-den</em>… mais on dit
+          <strong>Yamada</strong>. Que se passe-t-il ?
+        </p>
+        <p>
+          La plupart des toponymes et patronymes japonais sont <strong>antérieurs</strong> à
+          l’écriture chinoise. Le nom <em>Sumida</em> (la rivière) existait déjà en japonais
+          ancien ; quand on a voulu l’écrire avec des kanji, on a choisi des caractères dont
+          la <strong>lecture native (kun)</strong> permettait de noter le son <em>sumi-da</em> :
+          墨 (sumi, « encre ») + 田 (da, voisée de <em>ta</em>, « rizière »). Le sens des kanji
+          n’a parfois plus rien à voir avec le sens du nom — c’est juste un support phonétique.
+        </p>
+        <div className="toponym-grid">
+          <div className="toponym-card">
+            <div className="toponym-jp">墨田</div>
+            <div className="toponym-rom">Sumida</div>
+            <div className="toponym-rule">kun + kun</div>
+            <div className="toponym-note">et pas boku-den</div>
+          </div>
+          <div className="toponym-card">
+            <div className="toponym-jp">山田</div>
+            <div className="toponym-rom">Yamada</div>
+            <div className="toponym-rule">kun + kun</div>
+            <div className="toponym-note">et pas san-den</div>
+          </div>
+          <div className="toponym-card">
+            <div className="toponym-jp">渋谷</div>
+            <div className="toponym-rom">Shibuya</div>
+            <div className="toponym-rule">kun + kun</div>
+            <div className="toponym-note">et pas jū-koku</div>
+          </div>
+          <div className="toponym-card">
+            <div className="toponym-jp">横浜</div>
+            <div className="toponym-rom">Yokohama</div>
+            <div className="toponym-rule">kun + kun</div>
+            <div className="toponym-note">et pas ō-hin</div>
+          </div>
+          <div className="toponym-card toponym-card-irr">
+            <div className="toponym-jp">神戸</div>
+            <div className="toponym-rom">Kōbe</div>
+            <div className="toponym-rule">irrégulier (jukujikun)</div>
+            <div className="toponym-note">ni kami-to, ni shin-ko</div>
+          </div>
+          <div className="toponym-card toponym-card-rev">
+            <div className="toponym-jp">北海道</div>
+            <div className="toponym-rom">Hokkaidō</div>
+            <div className="toponym-rule">on + on + on</div>
+            <div className="toponym-note">nom administratif Meiji, sino-japonais</div>
+          </div>
+        </div>
+        <p>
+          Hokkaidō est la <strong>contre-exception</strong> : c’est un toponyme <em>moderne</em>
+          (créé en 1869) sur le moule sino-japonais lettré. D’où les on’yomi.
+          Règle de pouce :
+        </p>
+        <ul>
+          <li><strong>Toponyme ancien</strong> (la plupart des villes et quartiers historiques) → kun.</li>
+          <li><strong>Toponyme administratif moderne</strong> (forgé à l’époque Meiji ou plus tard) → souvent on.</li>
+          <li><strong>Composé savant courant</strong> (hors noms propres) → on.</li>
+        </ul>
+      </section>
+
       <section className="readings-section">
-        <h3 className="readings-h">6. Mémo express</h3>
+        <h3 className="readings-h">7. Mémo express</h3>
         <ul className="memo-list">
-          <li><strong>Kanji seul ou avec hiragana de relation</strong> (の, を, を) → en général <em>kun'yomi</em>.</li>
-          <li><strong>Deux kanji collés</strong>, surtout dans un registre administratif/savant → en général <em>on'yomi</em>.</li>
-          <li><strong>Noms de lieux et noms de famille</strong> → exception : beaucoup ont leurs propres
-              lectures, parfois irrégulières (<em>jukujikun</em>). Ex. 神戸 = Kōbe, pas « kami-to » ni « shin-ko ».</li>
+          <li><strong>Kanji seul ou avec hiragana de relation</strong> (の, を, に) → en général <em>kun'yomi</em>.</li>
+          <li><strong>Deux kanji collés, registre administratif/savant</strong> → en général <em>on'yomi</em>.</li>
+          <li><strong>Noms propres japonais natifs (lieux, familles)</strong> → presque toujours <em>kun'yomi</em>,
+              même collés à plusieurs kanji. Voir section 6.</li>
           <li><strong>Phénomène de rendaku</strong> : la première consonne du second segment peut « se voiser »
-              (k → g, h → b, s → z…). Ex. 川 <em>kawa</em> tout seul, mais 江戸<strong>川</strong> <em>Edogawa</em>.</li>
+              (k → g, h → b, s → z, t → d…). Ex. 川 <em>kawa</em> tout seul, mais 江戸<strong>川</strong>
+              <em>Edogawa</em>. Le 田 dans Sumida se voise de <em>ta</em> en <em>da</em> pour la même raison.</li>
         </ul>
       </section>
 
@@ -1497,6 +1578,14 @@ const CSS = `
   font-size: 12.5px; color: #cbd5e1; line-height: 1.55;
 }
 .krd-mirror .ksr-tag { margin-right: 8px; vertical-align: middle; }
+.krd-warning {
+  margin-top: 10px; padding: 10px 12px;
+  background: rgba(251,146,60,.08);
+  border: 1px solid rgba(251,146,60,.35);
+  border-radius: 8px;
+  font-size: 12.5px; color: #fde68a; line-height: 1.55;
+}
+.krd-warning strong { color: #fb923c; }
 
 .krd-choice {
   margin-top: 8px; padding-left: 8px;
@@ -1644,6 +1733,23 @@ const CSS = `
   border-radius: 12px; padding: 14px 16px;
   margin-top: 24px;
 }
+
+/* Section noms propres */
+.readings-toponyms { background: rgba(251,146,60,.04); border: 1px solid rgba(251,146,60,.18); border-radius: 14px; padding: 18px 20px; }
+.toponym-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 14px 0; }
+.toponym-card {
+  background: #161e2e; border: 1px solid #2a3a54; border-left: 4px solid #4ade80;
+  border-radius: 12px; padding: 12px 14px;
+  text-align: center;
+}
+.toponym-card-irr { border-left-color: #fb923c; }
+.toponym-card-rev { border-left-color: #38bdf8; }
+.toponym-jp { font-family: 'Noto Serif JP', serif; font-size: 28px; color: #f472b6; line-height: 1; margin-bottom: 4px; }
+.toponym-rom { font-weight: 700; color: #e8edf5; font-size: 14.5px; }
+.toponym-rule { font-size: 11px; color: #4ade80; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-top: 4px; }
+.toponym-card-irr .toponym-rule { color: #fb923c; }
+.toponym-card-rev .toponym-rule { color: #38bdf8; }
+.toponym-note { font-size: 11.5px; color: #94a3b8; font-style: italic; margin-top: 4px; }
 
 /* ═══ Page MON ESPACE ════════════════════════════════════════════════ */
 .profile-page { font-size: 14.5px; line-height: 1.6; color: #e8edf5; }
