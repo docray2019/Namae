@@ -232,20 +232,22 @@ function MapPicker({ runRef }) {
       <div ref={containerRef} className="map-picker-canvas" />
       <div className="map-picker-crosshair" aria-hidden>⊕</div>
       {loading && <div className="map-picker-loading">Chargement de la carte…</div>}
-      <div className="map-picker-actions">
-        <div className="map-picker-hint">{hint}</div>
-        {candidate && (
+      {candidate ? (
+        <div className="map-picker-found">
+          <div className="map-picker-found-label">📍 Lieu identifié</div>
+          <div className="map-picker-found-ja">{candidate.ja}</div>
+          {candidate.en && <div className="map-picker-found-en">{candidate.en}</div>}
           <button
             className="map-picker-confirm"
             onClick={() => runRef.current?.(candidate.ja, candidate.en)}
             title="Lance l'analyse étymologique de ce lieu (appel API)"
           >
-            ✓ Analyser{' '}
-            <strong>{candidate.ja}</strong>
-            {candidate.en && <span className="confirm-en"> · {candidate.en}</span>}
+            ✓ Analyser ce lieu
           </button>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="map-picker-hint">{hint}</div>
+      )}
     </div>
   )
 }
@@ -817,22 +819,46 @@ const CSS = `
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   font-size: 13px; color: #94a3b8;
 }
-.map-picker-actions {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 12px; margin-top: 10px; padding: 0 4px; flex-wrap: wrap;
+.map-picker-hint {
+  font-size: 13px; color: #94a3b8; line-height: 1.5;
+  margin-top: 10px; padding: 0 4px;
 }
-.map-picker-hint { font-size: 13px; color: #cbd5e1; line-height: 1.4; flex: 1; min-width: 0; }
+.map-picker-found {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; gap: 6px;
+  margin-top: 12px; padding: 18px 16px 20px;
+  background: linear-gradient(180deg, rgba(244,114,182,.10) 0%, rgba(244,114,182,.03) 100%);
+  border: 1px solid rgba(244,114,182,.35); border-radius: 16px;
+  animation: foundIn .2s ease-out;
+}
+@keyframes foundIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.map-picker-found-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .08em; color: #f9a8d4;
+}
+.map-picker-found-ja {
+  font-family: 'Noto Serif JP', serif; font-size: 42px; line-height: 1.1;
+  color: #f472b6; font-weight: 600; margin-top: 4px;
+}
+.map-picker-found-en {
+  font-family: 'DM Serif Display', serif; font-size: 18px; color: #e8edf5;
+  font-style: italic; opacity: 0.85;
+}
 .map-picker-confirm {
-  font-family: inherit; font-size: 14px; font-weight: 600;
+  margin-top: 10px;
+  font-family: inherit; font-size: 15px; font-weight: 600;
   background: #f472b6; color: #0f1623; border: none;
-  padding: 9px 16px; border-radius: 999px; cursor: pointer;
+  padding: 11px 24px; border-radius: 999px; cursor: pointer;
+  box-shadow: 0 6px 18px rgba(244,114,182,.30);
   transition: filter .15s, transform .12s;
-  white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
 }
 .map-picker-confirm:hover { filter: brightness(1.07); transform: translateY(-1px); }
 .map-picker-confirm:active { transform: translateY(0); }
-.map-picker-confirm strong { font-family: 'Noto Serif JP', serif; font-weight: 600; }
-.confirm-en { font-weight: 500; opacity: 0.75; font-size: 12.5px; }
+
+@media (max-width: 560px) {
+  .map-picker-found-ja { font-size: 34px; }
+  .map-picker-found-en { font-size: 16px; }
+}
 
 /* Recherche */
 .search { display: flex; gap: 10px; margin-bottom: 14px; }
