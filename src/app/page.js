@@ -394,24 +394,38 @@ export default function NamaePage() {
       navigator.serviceWorker.register('/sw.js').catch(() => {})
     }
     const params = new URLSearchParams(window.location.search)
-    // Maps remplit parfois `text`, parfois `url`, parfois les deux — on
-    // concatène les 3 champs et on laisse firstUsefulLine trier.
     const payload = [params.get('name'), params.get('text'), params.get('url')]
       .filter(Boolean).join('\n')
     if (!payload) return
     setTab('explore')
-    const name = firstUsefulLine(payload)
-    if (name) {
-      setQuery(name)
-      setSubmitted(name)
-      showToast(`Reçu : « ${name} »`)
-    } else {
-      // Lien court opaque (maps.app.goo.gl) — on ne peut pas résoudre côté
-      // client. On bascule sur l'Explorer et on focus le champ.
+
+    const cleanUrl = () => window.history.replaceState({}, '', window.location.pathname)
+    const accept = (name) => { setQuery(name); setSubmitted(name); showToast(`Reçu : « ${name} »`) }
+    const focusInput = () => {
       showToast('Lien Maps reçu — tapez le nom du lieu dans le champ ↓')
       setTimeout(() => document.getElementById('namae-input')?.focus(), 80)
     }
-    window.history.replaceState({}, '', window.location.pathname)
+
+    // 1) Nom trouvable côté client (titre / texte / URL longue Maps) → on lance.
+    const name = firstUsefulLine(payload)
+    if (name) { accept(name); cleanUrl(); return }
+
+    // 2) Lien court opaque (maps.app.goo.gl) → on demande au serveur de suivre
+    //    la redirection vers l'URL longue et d'en extraire le nom.
+    const urlMatch = payload.match(/https?:\/\/\S+/i)
+    if (urlMatch) {
+      showToast('Résolution du lien Maps…')
+      fetch(`/api/resolve-maps?u=${encodeURIComponent(urlMatch[0])}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => { data?.name ? accept(data.name) : focusInput() })
+        .catch(() => focusInput())
+        .finally(cleanUrl)
+      return
+    }
+
+    // 3) Rien d'exploitable → fallback champ texte.
+    focusInput()
+    cleanUrl()
   }, [])
 
   return (
