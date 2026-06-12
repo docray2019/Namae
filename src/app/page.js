@@ -10,23 +10,28 @@ const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
 const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
 
 // Reverse-geocoding via Nominatim (OpenStreetMap) — libre, sans clé. On demande
-// le japonais (`accept-language=ja`) : pour les lieux où OSM a une étiquette
-// `name:ja`, on récupère directement les kanji prêts à décomposer.
+// les détails de nommage (`namedetails=1`) pour récupérer en une seule requête
+// les variantes `name:ja` (kanji, ce qu'on décompose) et `name:en` (lecture
+// latine à afficher à côté).
 async function reverseGeocode(lat, lng, zoom) {
   const z = Math.min(18, Math.max(10, Math.round(zoom)))
-  const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=${z}&accept-language=ja`
+  const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&namedetails=1&lat=${lat}&lon=${lng}&zoom=${z}&accept-language=ja`
   try {
     const res = await fetch(url)
     if (!res.ok) return null
     const d = await res.json()
     const a = d?.address || {}
-    return (
+    const nd = d?.namedetails || {}
+    const ja =
+      nd['name:ja'] || nd.name ||
       d?.name ||
       a.attraction || a.tourism || a.shrine || a.temple ||
       a.neighbourhood || a.suburb || a.quarter || a.city_district ||
       a.town || a.village || a.city ||
       ''
-    ) || null
+    const en =
+      nd['name:en'] || nd['int_name'] || nd['name:rm'] || nd['alt_name'] || ''
+    return ja ? { ja, en: en || null } : null
   } catch {
     return null
   }
@@ -167,13 +172,14 @@ function MapPicker({ runRef }) {
           const c = map.getCenter()
           const z = map.getZoom()
           setHint('Identification du lieu au centre…')
-          const name = await reverseGeocode(c.lat, c.lng, z)
-          if (!name) { setHint('Aucun lieu nommé au centre — déplace ou zoome encore.'); return }
-          const key = name + '@' + z
-          if (key === lastQuery) { setHint(`📍 ${name}`); return }
+          const found = await reverseGeocode(c.lat, c.lng, z)
+          if (!found) { setHint('Aucun lieu nommé au centre — déplace ou zoome encore.'); return }
+          const label = found.en ? `📍 ${found.ja} — ${found.en}` : `📍 ${found.ja}`
+          const key = found.ja + '@' + z
+          if (key === lastQuery) { setHint(label); return }
           lastQuery = key
-          setHint(`📍 ${name}`)
-          runRef.current?.(name)
+          setHint(label)
+          runRef.current?.(found.ja, found.en)
         }, 600)
       })
     }
@@ -199,7 +205,7 @@ function MapPicker({ runRef }) {
 // ════════════════════════════════════════════════════════════════════════
 //  Mode EXPLORER
 // ════════════════════════════════════════════════════════════════════════
-function Explorer({ query, setQuery, submitted, run, runRef }) {
+function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef }) {
   const result = useMemo(() => decompose(submitted), [submitted])
   const recognized = useMemo(() => {
     if (!result) return []
@@ -244,6 +250,9 @@ function Explorer({ query, setQuery, submitted, run, runRef }) {
               <span className="card-title">
                 {result.input}
                 {result.resolvedKanji && <span className="resolved"> → {result.resolvedKanji}</span>}
+                {submittedLatin && !result.resolvedKanji && (
+                  <span className="latin"> — {submittedLatin}</span>
+                )}
               </span>
               <span className="card-sub">
                 {result.recognized > 0
@@ -469,6 +478,9 @@ export default function NamaePage() {
     return (p.get('name') || p.get('text') || p.get('url')) ? '' : 'Tokyo'
   })
   const [submitted, setSubmitted] = useState(query)
+  // Variante en alphabet latin du dernier lieu analysé, quand connue (renvoyée
+  // par Nominatim via `name:en`). Affichée à côté du kanji dans la fiche.
+  const [submittedLatin, setSubmittedLatin] = useState(null)
   const [toast, setToast] = useState(null)
   // Référence stable vers run(), pour que les handlers Leaflet (créés une seule
   // fois au montage) appellent toujours la dernière version.
@@ -484,10 +496,11 @@ export default function NamaePage() {
     return /^https?:\/\/(maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.com|www\.google\.com\/maps|g\.co\/kgs)/i.test(s)
   }
 
-  function run(value) {
+  function run(value, latin = null) {
     const v = (value ?? query).trim()
     if (!v) return
     setQuery(v)
+    setSubmittedLatin(latin)
 
     // Cas spécial : URL Maps collée dans le champ — on la résout côté serveur
     // avant d'analyser. Évite à l'utilisateur d'avoir à extraire le nom à la main.
@@ -598,7 +611,7 @@ export default function NamaePage() {
         </nav>
 
         <main className="main">
-          {tab === 'explore' && <Explorer query={query} setQuery={setQuery} submitted={submitted} run={run} runRef={runRef} />}
+          {tab === 'explore' && <Explorer query={query} setQuery={setQuery} submitted={submitted} submittedLatin={submittedLatin} run={run} runRef={runRef} />}
           {tab === 'learn' && <Learn />}
           {tab === 'quiz' && <Quiz />}
         </main>
@@ -723,6 +736,7 @@ const CSS = `
 .card-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
 .card-title { font-family: 'DM Serif Display', serif; font-size: 24px; }
 .resolved { font-family: 'Noto Serif JP', serif; color: #f472b6; }
+.latin { font-family: 'DM Serif Display', serif; color: #94a3b8; font-size: 0.78em; font-style: italic; }
 .card-sub { font-size: 13px; color: #94a3b8; }
 
 .segments { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
