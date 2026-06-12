@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { CATEGORIES, LEARN_COMPONENTS } from '@/lib/japan/components'
+import { CATEGORIES, LEARN_COMPONENTS, normalizeRomaji } from '@/lib/japan/components'
 import { decompose, mapEmbedUrl } from '@/lib/japan/parser'
 
 const ROLE_LABEL = { prefix: 'Préfixe', core: 'Nom principal', suffix: 'Suffixe' }
@@ -18,21 +18,28 @@ function Segment({ part }) {
     <div className="seg" style={{ borderColor: color }}>
       <div className="seg-role" style={{ color }}>{ROLE_LABEL[part.role]}</div>
       <div className="seg-kanji" style={{ color }}>{part.comp ? part.comp.k : part.text}</div>
-      <div className="seg-reading">{part.comp ? part.comp.romaji[0] : part.text}</div>
+      <div className="seg-reading">{part.comp ? (part.reading || part.comp.romaji[0]) : part.text}</div>
       <div className="seg-fr">{part.comp ? part.comp.fr.split(',')[0] : '— inconnu —'}</div>
     </div>
   )
 }
 
 // ── Fiche détaillée d'un idéogramme ────────────────────────────────────────
-function KanjiCard({ comp, big }) {
+// `reading` (optionnel) : lecture contextuelle dans le composé (ex. « tō »
+// pour 東 dans Tōkyō). Quand fournie, on l'affiche en grand et on relègue
+// les lectures canoniques dans la ligne « autres lectures ».
+function KanjiCard({ comp, big, reading }) {
   const cat = CATEGORIES[comp.cat]
+  const main = reading || comp.romaji[0]
+  const others = reading
+    ? comp.romaji.filter((r) => normalizeRomaji(r) !== normalizeRomaji(reading))
+    : comp.romaji.slice(1)
   return (
     <div className="kcard" style={{ borderColor: cat.color }}>
       <div className="kcard-glyph" style={{ color: cat.color }}>{comp.k}</div>
       <div className="kcard-body">
         <div className="kcard-top">
-          <span className="kcard-romaji">{comp.romaji[0]}</span>
+          <span className="kcard-romaji">{main}</span>
           <span className="kcard-kana">{comp.kana}</span>
           <span className="kcard-cat" style={{ background: cat.color }}>{cat.emoji} {cat.label}</span>
         </div>
@@ -41,7 +48,9 @@ function KanjiCard({ comp, big }) {
         {big && <div className="kcard-ex">📍 {comp.ex}</div>}
         <div className="kcard-meta">
           ✍️ {comp.strokes} traits
-          {comp.romaji.length > 1 && <span> · lectures : {comp.romaji.join(', ')}</span>}
+          {others.length > 0 && (
+            <span> · {reading ? 'autres lectures' : 'lectures'} : {others.join(', ')}</span>
+          )}
         </div>
       </div>
     </div>
@@ -123,7 +132,7 @@ function Explorer({ query, setQuery, submitted, run }) {
               <h3 className="section-h">Idéogrammes & étymologie</h3>
               {recognized.map((p, i) => (
                 <div key={i}>
-                  <KanjiCard comp={p.comp} big />
+                  <KanjiCard comp={p.comp} big reading={p.reading} />
                   {p.alts.length > 0 && (
                     <div className="alts">
                       Autres lectures possibles de « {p.comp.romaji[0]} » :{' '}
