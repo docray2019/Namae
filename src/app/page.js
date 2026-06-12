@@ -336,12 +336,16 @@ function AiSegment({ part }) {
 }
 
 // Fiche détaillée d'un segment, avec note pédagogique de l'IA, lectures kun/on
-// et explication du choix de lecture dans ce composé précis.
+// et explication du choix de lecture dans ce composé précis. Les badges « kun »
+// et « on » sont cliquables : ils déplient une définition courte du concept,
+// utile au lecteur qui ne maîtrise pas encore les deux familles de lectures.
 function AiPartCard({ part }) {
   const color = ROLE_COLOR[part.role] || '#64748b'
   const isSuffix = part.role === 'suffix'
   const reading = isSuffix && part.reading ? `-${part.reading}` : part.reading
   const hasReadings = part.kun || part.on
+  const [openExplain, setOpenExplain] = useState(null) // 'kun' | 'on' | null
+  const toggle = (which) => setOpenExplain((cur) => (cur === which ? null : which))
   return (
     <div className={`kcard ${isSuffix ? 'is-suffix' : ''}`} style={{ borderColor: color, ...(isSuffix ? { background: `${color}14` } : null) }}>
       <div className="kcard-glyph" style={{ color }}>{part.text}</div>
@@ -354,17 +358,45 @@ function AiPartCard({ part }) {
         {part.note && <div className="kcard-note">{part.note}</div>}
         {hasReadings && (
           <div className="kcard-readings">
-            <div className="krd-head">Lectures du kanji</div>
+            <div className="krd-head">Lectures du kanji <span className="krd-hint">(clique sur kun / on)</span></div>
             {part.kun && (
               <div className="krd-row">
-                <span className="krd-tag krd-kun" title="Kun'yomi : lecture japonaise native">kun</span>
+                <button
+                  type="button"
+                  className={`krd-tag krd-kun ${openExplain === 'kun' ? 'on' : ''}`}
+                  onClick={() => toggle('kun')}
+                  aria-expanded={openExplain === 'kun'}
+                  aria-label="Qu’est-ce que la kun’yomi ?"
+                >kun</button>
                 <span className="krd-val">{part.kun}</span>
               </div>
             )}
             {part.on && (
               <div className="krd-row">
-                <span className="krd-tag krd-on" title="On'yomi : lecture sino-japonaise">on</span>
+                <button
+                  type="button"
+                  className={`krd-tag krd-on ${openExplain === 'on' ? 'on' : ''}`}
+                  onClick={() => toggle('on')}
+                  aria-expanded={openExplain === 'on'}
+                  aria-label="Qu’est-ce que la on’yomi ?"
+                >on</button>
                 <span className="krd-val">{part.on}</span>
+              </div>
+            )}
+            {openExplain === 'kun' && (
+              <div className="krd-explain krd-explain-kun">
+                <strong>Kun’yomi (訓読み)</strong> — lecture <em>« japonaise native »</em>. C’est la prononciation
+                d’origine japonaise du kanji, qui rendait dans l’écriture chinoise importée un mot déjà existant
+                en japonais. On l’utilise typiquement quand le kanji est <strong>seul</strong> ou dans un mot
+                d’origine purement japonaise. Ex. <span className="krd-ex">海 → umi (« la mer »)</span>.
+              </div>
+            )}
+            {openExplain === 'on' && (
+              <div className="krd-explain krd-explain-on">
+                <strong>On’yomi (音読み)</strong> — lecture <em>« sino-japonaise »</em>. C’est l’approximation
+                japonaise de la prononciation chinoise médiévale du caractère, emportée avec le caractère lors
+                de son emprunt. On la trouve surtout dans les <strong>composés savants</strong> de deux kanji
+                ou plus. Ex. <span className="krd-ex">海洋 → kaiyō (« l’océan ») — 海 se lit kai</span>.
               </div>
             )}
             {part.reading_choice_fr && (
@@ -1028,15 +1060,40 @@ const CSS = `
   font-size: 10.5px; font-weight: 600; text-transform: uppercase;
   letter-spacing: .08em; color: #94a3b8; margin-bottom: 6px;
 }
+.krd-hint { text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 10.5px; color: #64748b; margin-left: 4px; }
 .krd-row { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
 .krd-tag {
-  display: inline-block; min-width: 32px;
+  display: inline-block; min-width: 36px;
+  font-family: inherit;
   font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
-  padding: 2px 6px; border-radius: 4px; text-align: center; cursor: help;
+  padding: 3px 7px; border-radius: 5px; text-align: center;
+  border: 1px solid transparent; cursor: pointer; transition: filter .12s, transform .12s, border-color .12s;
 }
+.krd-tag:hover { filter: brightness(1.15); transform: translateY(-1px); }
+.krd-tag:active { transform: translateY(0); }
 .krd-kun { background: rgba(74,222,128,.18); color: #4ade80; }
 .krd-on  { background: rgba(56,189,248,.18); color: #38bdf8; }
+.krd-kun.on { border-color: #4ade80; background: rgba(74,222,128,.30); }
+.krd-on.on  { border-color: #38bdf8; background: rgba(56,189,248,.30); }
 .krd-val { font-family: 'Noto Serif JP', serif; color: #e8edf5; }
+
+.krd-explain {
+  margin-top: 8px; padding: 10px 12px;
+  font-size: 12.5px; line-height: 1.55; color: #e8edf5;
+  border-radius: 8px;
+  animation: krdIn .18s ease-out;
+}
+@keyframes krdIn { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
+.krd-explain-kun { background: rgba(74,222,128,.10); border-left: 3px solid #4ade80; }
+.krd-explain-on  { background: rgba(56,189,248,.10); border-left: 3px solid #38bdf8; }
+.krd-explain strong { font-weight: 700; }
+.krd-explain em { color: #cbd5e1; font-style: italic; }
+.krd-ex {
+  display: inline-block; margin-left: 4px;
+  font-family: 'Noto Serif JP', serif;
+  background: rgba(15,22,35,.6); padding: 1px 7px; border-radius: 4px;
+}
+
 .krd-choice {
   margin-top: 8px; padding-left: 8px;
   border-left: 2px solid #f472b6;
