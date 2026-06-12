@@ -349,8 +349,14 @@ function Quiz() {
 // ════════════════════════════════════════════════════════════════════════
 export default function NamaePage() {
   const [tab, setTab] = useState('explore')
-  const [query, setQuery] = useState('Tokyo')
-  const [submitted, setSubmitted] = useState('Tokyo')
+  // Sur ouverture via Web Share Target, on ne veut PAS analyser « Tokyo » par
+  // défaut : on attend le résultat du share. Sinon, démo avec Tokyo.
+  const [query, setQuery] = useState(() => {
+    if (typeof window === 'undefined') return 'Tokyo'
+    const p = new URLSearchParams(window.location.search)
+    return (p.get('name') || p.get('text') || p.get('url')) ? '' : 'Tokyo'
+  })
+  const [submitted, setSubmitted] = useState(query)
   const [toast, setToast] = useState(null)
 
   function showToast(msg) {
