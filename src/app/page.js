@@ -400,9 +400,7 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef }) {
     <div>
       <MapPicker runRef={runRef} />
       <p className="howto">
-        💡 Centre un lieu sur la carte et clique <strong>« Analyser ce lieu »</strong>.
-        Tu peux aussi utiliser le bouton <strong>📋 Coller</strong> en haut à droite
-        (pour un nom copié depuis Google Maps).
+        💡 Centre un lieu sur la carte (le nom s’affiche au centre) puis clique <strong>« Analyser ce lieu »</strong>.
       </p>
 
       {analysis.loading && (
@@ -697,26 +695,6 @@ export default function NamaePage() {
   }
   runRef.current = run
 
-  // Parcours : l'utilisateur a copié un nom dans Maps/Citymapper → on le colle et on l'analyse.
-  async function pasteAndAnalyze() {
-    setTab('explore')
-    try {
-      if (!navigator.clipboard || !navigator.clipboard.readText) throw new Error('unsupported')
-      const text = (await navigator.clipboard.readText()) || ''
-      const name = firstUsefulLine(text)
-      if (name) {
-        run(name)
-        showToast(`Collé : « ${name} »`)
-        return
-      }
-      // Pas de nom direct — peut-être une URL Maps courte ? run() saura la résoudre.
-      const urlMatch = text.match(/https?:\/\/(maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.com|www\.google\.com\/maps|g\.co\/kgs)\S*/i)
-      if (urlMatch) { run(urlMatch[0]); return }
-      showToast('Presse-papiers : aucun nom de lieu détecté.')
-    } catch {
-      showToast('Autorisez le presse-papiers, ou pioche un lieu sur la carte.')
-    }
-  }
 
   // Web Share Target + PWA :
   //   • Enregistre le service worker (requis pour rendre l'app installable, donc
@@ -753,9 +731,6 @@ export default function NamaePage() {
     <>
       <style>{CSS}</style>
 
-      <button className="paste-fab" onClick={pasteAndAnalyze} title="Coller depuis le presse-papiers et analyser">
-        📋 <span>Coller</span>
-      </button>
       {toast && <div className="toast">{toast}</div>}
 
       <div className="page">
@@ -817,17 +792,6 @@ const CSS = `
 
 .main { min-height: 300px; }
 
-/* Bouton flottant « Coller » (top-most, haut droite) */
-.paste-fab {
-  position: fixed; top: 16px; right: 16px; z-index: 1000;
-  display: inline-flex; align-items: center; gap: 8px;
-  font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
-  background: #f472b6; color: #0f1623; border: none;
-  padding: 12px 18px; border-radius: 999px; cursor: pointer;
-  box-shadow: 0 8px 24px rgba(244,114,182,.35); transition: transform .12s, filter .12s;
-}
-.paste-fab:hover { filter: brightness(1.07); transform: translateY(-1px); }
-.paste-fab:active { transform: translateY(0); }
 
 .toast {
   position: fixed; top: 70px; right: 16px; z-index: 1000; max-width: min(360px, calc(100vw - 32px));
@@ -959,16 +923,16 @@ const CSS = `
 
 /* Suffixes : plus petits et clairement badgés (fond teinté + bordure forte). */
 .seg.is-suffix {
-  flex: 0 0 auto; min-width: 96px;
-  padding: 10px 12px;
+  flex: 0 0 auto; min-width: 110px;
+  padding: 10px 18px;
   border-width: 1.5px;
   border-radius: 999px;
   align-self: center;
 }
 .seg.is-suffix .seg-role { font-size: 10px; margin-bottom: 4px; }
-.seg.is-suffix .seg-kanji { font-size: 28px; margin-bottom: 4px; }
-.seg.is-suffix .seg-reading { font-size: 12.5px; font-weight: 600; opacity: 0.95; }
-.seg.is-suffix .seg-fr { font-size: 11.5px; margin-top: 0; }
+.seg.is-suffix .seg-kanji { font-size: 26px; margin-bottom: 4px; line-height: 1; }
+.seg.is-suffix .seg-reading { font-size: 11px; font-weight: 600; opacity: 0.95; }
+.seg.is-suffix .seg-fr { font-size: 10.5px; margin-top: 1px; opacity: 0.85; }
 
 .kcard.is-suffix { padding: 10px 14px; }
 .kcard.is-suffix .kcard-glyph { font-size: 36px; width: 48px; }
@@ -1062,8 +1026,6 @@ const CSS = `
 .footer { text-align: center; font-size: 12px; color: #475569; margin-top: 48px; }
 
 @media (max-width: 560px) {
-  .paste-fab { padding: 12px; }
-  .paste-fab span { display: none; }
   .brand-jp, .brand-name { font-size: 32px; }
   .seg-kanji { font-size: 36px; }
   .quiz-glyph { font-size: 72px; }
