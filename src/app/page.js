@@ -1071,128 +1071,202 @@ function KatakanaPage() {
       <section className="readings-section readings-hokkaido">
         <h3 className="readings-h">Comment l’anglais devient japonais</h3>
         <p>
-          Le japonais ne sait pas prononcer un mot étranger tel quel. Sa structure
-          phonétique impose des règles d’adaptation systématiques. Comprendre ces
-          règles te permet de <strong>reconnaître à coup sûr</strong> ce que
-          « フォトグラフィー » ou « ハンバーガー » signifie en V.O.
+          La bouche d’un japonophone ne peut pas dire <em>sky</em> tel quel. Pas par
+          paresse — la <strong>structure même de sa langue</strong> le lui interdit. Du
+          coup, à chaque emprunt, le mot étranger passe par <strong>cinq transformations</strong>.
+          Comprendre ces cinq-là, c’est comprendre 95 % des katakana qu’on croise.
         </p>
 
-        <h4 className="readings-h4">Les 5 contraintes du japonais</h4>
-        <ul className="rules-list">
-          <li><strong>1. Pas de consonnes seules</strong> (sauf <em>n</em>). Chaque consonne doit être suivie d’une voyelle. <em>Tree</em> ne peut pas exister tel quel — il faut intercaler des voyelles.</li>
-          <li><strong>2. Pas de groupes consonantiques</strong> comme <em>tr</em>, <em>str</em>, <em>spl</em>. On insère une voyelle entre les deux : <em>tree</em> → tu-rī.</li>
-          <li><strong>3. Pas de L</strong>, qui devient systématiquement <strong>R</strong>. <em>Hotel</em> → ho-te-ru.</li>
-          <li><strong>4. Pas de V</strong> historiquement, qui devient <strong>B</strong>. <em>Volvo</em> → ボルボ (boru-bo). (ヴ existe pour rendre v en transcription savante, mais reste marginal.)</li>
-          <li><strong>5. Pas de TH</strong>. <em>Three</em> → スリー (su-rī), <em>that</em> → ザット (zatto).</li>
+        <h4 className="readings-h4">Transformation 1 — « Toute consonne doit avoir une voyelle derrière »</h4>
+        <p>
+          En japonais, on ne peut pas terminer une syllabe par une consonne (sauf le <em>n</em> ん/ン,
+          qui a un statut spécial). Le mot anglais <em>cat</em> finit sur <em>t</em> — impossible.
+          On <strong>colle une voyelle</strong> derrière le t : <em>cat</em> → <em>ca-to</em>
+          → キャット (qu’on prononce « <strong>kya-tto</strong> », avec la double consonne, voir
+          plus bas le ッ).
+        </p>
+        <p>
+          Pareil pour <em>bus</em> qui finit en <em>s</em> → on ajoute u → <em>ba-su</em> → バス.
+          Idem pour <em>book</em> → <em>bu-kku</em> → ブック.
+        </p>
+
+        <h4 className="readings-h4">Transformation 2 — « Deux consonnes qui se touchent : impossible »</h4>
+        <p>
+          En anglais on dit <em>sky</em>, <em>tree</em>, <em>strike</em> : plusieurs consonnes
+          se suivent sans voyelle entre. Le japonais ne peut pas. Sa solution : <strong>glisser
+          une voyelle entre les deux</strong> pour les séparer.
+        </p>
+        <p>
+          <em>sky</em> commence par <em>s</em> + <em>k</em> qui se touchent → on insère <em>u</em>
+          → <em>su-k…</em>. Le mot ne se prononce plus « ski » mais « <em>su-ka-i</em> » en
+          écriture, « skai » à l’oral (le u sera avalé, voir section suivante).
+        </p>
+        <p>
+          <em>strike</em> a même 3 consonnes collées (s-t-r-) → trois voyelles à intercaler :
+          <em>su-to-ra-i-ku</em> → ストライク.
+        </p>
+
+        <h4 className="readings-h4">Transformation 3 — « Le L n’existe pas »</h4>
+        <p>
+          Le son L tel qu’on le prononce en français ou en anglais n’existe pas dans la
+          phonétique japonaise. Tout L devient un <strong>R japonais</strong> (qui est lui-même
+          intermédiaire entre R, L et D français). On écrit donc <em>milk</em> avec un R :
+          mi + ru + ku → ミルク.
+        </p>
+        <p>
+          Idem pour <em>hotel</em> → ho-te-<strong>ru</strong> → ホテル, <em>apple</em> → a-pu-<strong>ru</strong>
+          → アップル.
+        </p>
+
+        <h4 className="readings-h4">Transformation 4 — « Le V devient B »</h4>
+        <p>
+          Le son V (lèvre inférieure contre dents du haut) n’existait pas en japonais classique.
+          Tous les V d’emprunt deviennent des B. <em>Vitamin</em> → <strong>bi</strong>-ta-mi-n → ビタミン.
+          <em>Volvo</em> → <strong>bo</strong>-ru-<strong>bo</strong> → ボルボ.
+        </p>
+        <p>
+          Depuis quelques décennies, on écrit parfois ヴ (avec deux petits points) pour signaler
+          un vrai V à l’œil — mais beaucoup de gens le prononcent quand même B en parlant.
+        </p>
+
+        <h4 className="readings-h4">Transformation 5 — « Le TH n’existe pas »</h4>
+        <p>
+          Ni le TH sourd anglais de <em>three</em>, ni le TH sonore de <em>that</em>.
+          On le remplace par le son le plus proche dans le répertoire japonais :
+        </p>
+        <ul>
+          <li>TH sourd → <strong>S</strong> : <em>three</em> → <strong>su</strong>-rī → スリー</li>
+          <li>TH sonore → <strong>Z</strong> : <em>that</em> → <strong>za</strong>-tto → ザット</li>
         </ul>
 
-        <h4 className="readings-h4">La voyelle d’insertion : presque toujours <em>u</em></h4>
-        <p>
-          Quand le japonais doit ajouter une voyelle pour casser un groupe de consonnes
-          ou pour fermer un mot, c’est presque toujours <strong>u</strong> qu’il
-          utilise — sauf après <em>t</em> et <em>d</em> où c’est <em>o</em>
-          (pour éviter les sons « tu » et « du » qui n’existent pas en japonais natif).
-        </p>
+        <h4 className="readings-h4">Récap visuel</h4>
+        <p>Les 4 exemples ci-dessous combinent toutes ces règles :</p>
         <div className="rules-grid">
-          <div className="rule-row"><span className="rr-en">strike</span><span className="rr-arrow">→</span><span className="rr-jp">ストライク</span><span className="rr-rom">su-to-ra-i-ku</span></div>
-          <div className="rule-row"><span className="rr-en">milk</span><span className="rr-arrow">→</span><span className="rr-jp">ミルク</span><span className="rr-rom">mi-ru-ku</span></div>
-          <div className="rule-row"><span className="rr-en">cat</span><span className="rr-arrow">→</span><span className="rr-jp">キャット</span><span className="rr-rom">kya-tto (le t final + voyelle <em>o</em>)</span></div>
-          <div className="rule-row"><span className="rr-en">bed</span><span className="rr-arrow">→</span><span className="rr-jp">ベッド</span><span className="rr-rom">be-ddo</span></div>
+          <div className="rule-row"><span className="rr-en">strike</span><span className="rr-arrow">→</span><span className="rr-jp">ストライク</span><span className="rr-rom">3 consonnes initiales s-t-r → 3 u/o insérés</span></div>
+          <div className="rule-row"><span className="rr-en">milk</span><span className="rr-arrow">→</span><span className="rr-jp">ミルク</span><span className="rr-rom">L → R, et k final → ku</span></div>
+          <div className="rule-row"><span className="rr-en">cat</span><span className="rr-arrow">→</span><span className="rr-jp">キャット</span><span className="rr-rom">t final → to ; après t/d on insère o (pas u)</span></div>
+          <div className="rule-row"><span className="rr-en">bed</span><span className="rr-arrow">→</span><span className="rr-jp">ベッド</span><span className="rr-rom">d final → do (idem)</span></div>
         </div>
+        <p className="kana-table-note">
+          <strong>Petite finesse</strong> : la voyelle d’insertion est presque toujours
+          <em> u</em> — sauf après <em>t</em> et <em>d</em> où on met <em>o</em> à la place
+          (parce que les sons « tu » et « du » du japonais natif n’existent pas et qu’il faudrait
+          dire « tsu » ou « zu », ce qui s’éloignerait trop du mot d’origine).
+        </p>
       </section>
 
       <section className="readings-section">
-        <h3 className="readings-h">La règle du <em>u</em> qui disparaît</h3>
+        <h3 className="readings-h">La règle du <em>u</em> qui s’efface</h3>
         <p>
-          C’est <strong>la</strong> règle qui explique pourquoi un mot écrit
-          スカイ se prononce « skaï » et pas « sou-kaï ». En japonais, le son
-          <em>u</em> entre deux consonnes sourdes (k, s, sh, t, ts, ch, h, f, p)
-          ou en finale est <strong>fortement raccourci, voire chuchoté</strong>
-          (les linguistes appellent ça <em>la dévoisement vocalique</em> —
-          <em>boin no museika</em>, 母音の無声化).
+          On vient de voir que le japonais <strong>écrit</strong> beaucoup de voyelles
+          en plus du mot original. Mais à l’oral, presque toutes ces voyelles supplémentaires
+          <strong> ne sont pas vraiment prononcées</strong> — elles sont chuchotées, voire
+          complètement avalées.
         </p>
+
+        <h4 className="readings-h4">La règle, simplement</h4>
+        <p>
+          Quand un <em>u</em> est <strong>coincé entre deux consonnes « sourdes »</strong>
+          (k, s, sh, t, ts, ch, h, f, p) <strong>ou en fin de mot</strong>,
+          il devient <strong>quasi-muet</strong>. On dit que la voyelle « se dévoise » —
+          les Japonais appellent ça <em>boin no museika</em> (母音の無声化).
+        </p>
+        <p>
+          C’est pour ça qu’on écrit <em>su-shi</em> mais qu’on entend <em>« sshi »</em>,
+          qu’on écrit <em>de-su</em> mais qu’on entend <em>« dess »</em>, qu’on écrit
+          <em> su-ka-i</em> mais qu’on entend <em>« skaï »</em>.
+        </p>
+
+        <h4 className="readings-h4">Tu n’as pas à le faire exprès</h4>
+        <p>
+          Cette règle n’est pas un effort à fournir : c’est mécanique en parlant vite.
+          La langue japonaise glisse simplement sur ces u, comme on glisse sur le « e » muet
+          du français (« je ne sais pas » prononcé « j’sais pas »).
+        </p>
+
+        <h4 className="readings-h4">4 exemples à mémoriser</h4>
         <div className="devoice-grid">
           <div className="dv-card">
             <div className="dv-jp">スカイ</div>
-            <div className="dv-spell">su-ka-i</div>
-            <div className="dv-real">→ « <strong>s</strong>kai » <span className="dv-note">(le u disparaît entre s et k)</span></div>
+            <div className="dv-spell">écrit : su-ka-i</div>
+            <div className="dv-real">entendu : « <strong>s</strong>kaï » <span className="dv-note">(u entre s et k → avalé)</span></div>
           </div>
           <div className="dv-card">
             <div className="dv-jp">です</div>
-            <div className="dv-spell">de-su</div>
-            <div className="dv-real">→ « de<strong>s</strong> » <span className="dv-note">(u final entre s et silence)</span></div>
+            <div className="dv-spell">écrit : de-su</div>
+            <div className="dv-real">entendu : « de<strong>ss</strong> » <span className="dv-note">(u final → muet)</span></div>
           </div>
           <div className="dv-card">
             <div className="dv-jp">クッキー</div>
-            <div className="dv-spell">ku-kkī</div>
-            <div className="dv-real">→ « <strong>k</strong>kī » <span className="dv-note">(u initial avalé)</span></div>
+            <div className="dv-spell">écrit : ku-kkī</div>
+            <div className="dv-real">entendu : « <strong>k</strong>kī » <span className="dv-note">(u initial avant k → effacé)</span></div>
           </div>
           <div className="dv-card">
             <div className="dv-jp">寿司</div>
-            <div className="dv-spell">su-shi</div>
-            <div className="dv-real">→ « <strong>s</strong>shi » <span className="dv-note">(u entre s et sh — disparaît presque)</span></div>
+            <div className="dv-spell">écrit : su-shi</div>
+            <div className="dv-real">entendu : « <strong>s</strong>shi » <span className="dv-note">(u entre s et sh → presque inaudible)</span></div>
           </div>
         </div>
         <p className="kana-table-note">
-          Ne te demande pas si <em>tu dois</em> avaler le u : c’est automatique en parlant vite.
-          L’écrire en romaji avec un « u » comme dans <em>sukai</em> est une convention pour fixer
-          l’orthographe, pas la prononciation.
+          Quand tu lis un mot en katakana et qu’il te paraît imprononçable
+          (ex. ストライク = su-to-ra-i-ku), enlève mentalement les u et les i
+          « pris en sandwich » → <em>storaiku</em> → <em>« straïk »</em> → <strong>strike</strong>. ✨
         </p>
       </section>
 
       <section className="readings-section readings-toponyms">
-        <h3 className="readings-h">Cas d’école : スカイツリー — Tokyo Skytree</h3>
+        <h3 className="readings-h">Cas d’école : <em>Skytree</em> → スカイツリー</h3>
         <p>
-          La tour Skytree à Tōkyō (634 m, la plus haute du Japon) tire son nom de l’anglais
-          <em> Sky Tree</em>. Voyons comment chaque syllabe passe d’un système à l’autre.
+          La Tokyo Skytree (634 m, plus haute tour du Japon) tire son nom de l’anglais
+          <em> Sky Tree</em>. On va suivre le mot étape par étape pour voir comment il
+          se transforme.
         </p>
+
         <div className="schema schema-ateji" style={{ borderColor: 'rgba(56,189,248,.4)' }}>
-          <div className="schema-title">📐 Schéma : « Skytree » → スカイツリー</div>
+          <div className="schema-title">📐 Première moitié : <em>sky</em> → スカイ</div>
           <div className="skytree-flow">
-            <div className="stf-pair">
-              <div className="stf-en">sky</div>
-              <div className="stf-arrow">→</div>
-              <div className="stf-jp">スカイ</div>
-              <div className="stf-rom">su-ka-i</div>
-            </div>
-            <div className="stf-explain">
-              <strong>s + k</strong> est un groupe consonantique → on intercale un <em>u</em>
-              (« su »). Puis le diphtongue <em>-y</em> de <em>sky</em> donne <em>a-i</em>
-              (deux syllabes en japonais !). Le <em>u</em> dans <em>su</em> est entre deux
-              consonnes sourdes → on l’avale presque. À l’oral : « <strong>skai</strong> ».
-            </div>
+            <ol className="bmk-steps">
+              <li><strong>Au départ</strong> : le mot anglais <em>sky</em>, qui se prononce « skaï ».</li>
+              <li><strong>Problème 1</strong> : <em>s</em> et <em>k</em> se touchent. Impossible en japonais → on glisse un <em>u</em> entre les deux → <em>s-u-k…</em></li>
+              <li><strong>Problème 2</strong> : la fin <em>-y</em> qu’on entend « aï » s’écrit avec <strong>deux syllabes</strong> en japonais — une pour le <em>a</em>, une pour le <em>i</em>.</li>
+              <li><strong>On écrit</strong> : <em>su-ka-i</em> → スカイ.</li>
+              <li><strong>On prononce</strong> : le <em>u</em> dans <em>su</em> est coincé entre <em>s</em> et <em>k</em> (deux consonnes sourdes) → il disparaît. On entend « <strong>skaï</strong> ».</li>
+            </ol>
             <div className="stf-chars">
-              <div className="stf-char"><span className="stf-glyph">ス</span><span className="stf-sub">su</span></div>
+              <div className="stf-char"><span className="stf-glyph">ス</span><span className="stf-sub">su (muet)</span></div>
               <div className="stf-char"><span className="stf-glyph">カ</span><span className="stf-sub">ka</span></div>
               <div className="stf-char"><span className="stf-glyph">イ</span><span className="stf-sub">i</span></div>
             </div>
+          </div>
+        </div>
 
-            <div className="stf-pair">
-              <div className="stf-en">tree</div>
-              <div className="stf-arrow">→</div>
-              <div className="stf-jp">ツリー</div>
-              <div className="stf-rom">tsu-rī</div>
-            </div>
-            <div className="stf-explain">
-              <strong>t + r</strong> est un autre groupe consonantique → on insère une voyelle
-              entre les deux. Mais le japonais n’a pas de son « tu » (le ト → to, le ツ → <em>tsu</em>).
-              Donc <em>t</em> + voyelle d’insertion devient ツ (tsu). Puis <em>r</em> reprend
-              la voyelle finale du mot anglais : <em>ee</em> → <strong>ī</strong> (long), noté リー
-              avec le tiret allongeur ー. Et le <em>L</em> n’existant pas, c’était de toute façon
-              un <em>r</em>.
-            </div>
+        <div className="schema schema-ateji" style={{ borderColor: 'rgba(56,189,248,.4)' }}>
+          <div className="schema-title">📐 Deuxième moitié : <em>tree</em> → ツリー</div>
+          <div className="skytree-flow">
+            <ol className="bmk-steps">
+              <li><strong>Au départ</strong> : le mot anglais <em>tree</em>, prononcé « trî ».</li>
+              <li><strong>Problème 1</strong> : <em>t</em> et <em>r</em> se touchent → on doit séparer.</li>
+              <li><strong>Problème 2</strong> : le japonais n’a pas le son « tu ». La case <em>ta-chi-tsu-te-to</em> du tableau saute « tu » et a <em>tsu</em> (un son comme « ts »). Donc <em>t</em> + voyelle d’insertion donne <strong>ツ (tsu)</strong>, pas <em>tu</em>.</li>
+              <li><strong>Problème 3</strong> : le L de tree n’existe pas… mais en fait, c’est déjà un R en anglais (<em>tr</em>ee). Aucun changement nécessaire.</li>
+              <li><strong>Problème 4</strong> : la voyelle finale <em>-ee</em> est <strong>longue</strong>. On la note avec le tiret allongeur <em>ー</em>.</li>
+              <li><strong>On écrit</strong> : <em>tsu-ri-(long)</em> → ツリー.</li>
+              <li><strong>On prononce</strong> : « <strong>tsurī</strong> » (le u dans tsu est rapide mais audible cette fois — il n’est pas coincé entre deux consonnes sourdes).</li>
+            </ol>
             <div className="stf-chars">
               <div className="stf-char"><span className="stf-glyph">ツ</span><span className="stf-sub">tsu</span></div>
               <div className="stf-char"><span className="stf-glyph">リ</span><span className="stf-sub">ri</span></div>
-              <div className="stf-char"><span className="stf-glyph">ー</span><span className="stf-sub">(long)</span></div>
+              <div className="stf-char"><span className="stf-glyph">ー</span><span className="stf-sub">(allonge)</span></div>
             </div>
+          </div>
+        </div>
 
-            <div className="stf-result">
-              <div className="stf-result-label">Résultat</div>
-              <div className="stf-result-jp">スカイツリー</div>
-              <div className="stf-result-rom"><strong>sukai tsurī</strong>, prononcé « <strong>skai tsurī</strong> »</div>
-              <div className="stf-result-en">= Sky Tree</div>
-            </div>
+        <div className="schema schema-ateji" style={{ borderColor: 'rgba(56,189,248,.5)', background: 'rgba(56,189,248,.06)' }}>
+          <div className="schema-title">✨ On colle les deux moitiés</div>
+          <div className="stf-result">
+            <div className="stf-result-label">Résultat final</div>
+            <div className="stf-result-jp">スカイツリー</div>
+            <div className="stf-result-rom"><strong>su-ka-i tsu-rī</strong> à l’écrit, prononcé « <strong>skaï tsurī</strong> » à l’oral</div>
+            <div className="stf-result-en">= Sky Tree (la tour de Tōkyō)</div>
           </div>
         </div>
       </section>
