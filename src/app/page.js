@@ -6,30 +6,10 @@ import { decompose, mapEmbedUrl } from '@/lib/japan/parser'
 
 const ROLE_LABEL = { prefix: 'Préfixe', core: 'Nom principal', suffix: 'Suffixe' }
 const EXAMPLES = ['Tokyo', 'Kyoto', '金沢', 'Hiroshima', 'Shinjuku', 'Taitō', 'Nagasaki', '明治神宮', 'Fukuoka']
-const MAPLIBRE_JS = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'
-const MAPLIBRE_CSS = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css'
-const MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron'
 
 // ── Stockage local (historique des analyses + préférences) ─────────────────
 const HISTORY_KEY = 'namae_history_v1'
 const HISTORY_MAX = 50
-const MAP_VIEW_KEY = 'namae_map_view_v1'
-
-function loadMapView() {
-  if (typeof window === 'undefined') return null
-  try {
-    const raw = window.localStorage.getItem(MAP_VIEW_KEY)
-    if (!raw) return null
-    const v = JSON.parse(raw)
-    if (typeof v?.lng !== 'number' || typeof v?.lat !== 'number' || typeof v?.zoom !== 'number') return null
-    return v
-  } catch { return null }
-}
-
-function saveMapView(lng, lat, zoom) {
-  if (typeof window === 'undefined') return
-  try { window.localStorage.setItem(MAP_VIEW_KEY, JSON.stringify({ lng, lat, zoom })) } catch {}
-}
 
 function loadHistory() {
   if (typeof window === 'undefined') return []
@@ -175,210 +155,6 @@ function KanjiCard({ comp, big, reading }) {
   )
 }
 
-// ── Carte interactive : l'utilisateur centre le lieu visé, on reverse-geocode
-//    le centre via Nominatim (kanji + romaji). MapLibre GL JS rend des tuiles
-//    vectorielles d'OpenFreeMap (libre, sans clé) : on récrit le style des
-//    labels pour empiler `name:ja` au-dessus et `name:en` (ou `name:latin`)
-//    en-dessous, donc chaque étiquette est bilingue sur la carte elle-même.
-function MapPicker({ runRef }) {
-  const containerRef = useRef(null)
-  const [loading, setLoading] = useState(true)
-  const [hint, setHint] = useState('Pinch pour zoomer, glisse pour déplacer — le lieu au centre sera analysé.')
-  // Lieu candidat identifié par Nominatim au centre de la carte. L'utilisateur
-  // confirme via le bouton « Analyser ce lieu » avant qu'on appelle l'API Opus
-  // (qui est payante), pour éviter un appel par pan.
-  const [candidate, setCandidate] = useState(null) // { ja, en } | null
-
-  useEffect(() => {
-    let map = null
-    let cancelled = false
-    let debounce = null
-    // Liste des layers symboliques de la carte qui portent un texte (labels) —
-    // peuplée après le chargement du style. On l'utilise pour interroger
-    // uniquement les étiquettes effectivement rendues à l'écran.
-    let labelLayerIds = []
-
-    async function ensureMaplibre() {
-      if (window.maplibregl) return
-      if (!document.getElementById('maplibre-css')) {
-        const css = document.createElement('link')
-        css.id = 'maplibre-css'
-        css.rel = 'stylesheet'
-        css.href = MAPLIBRE_CSS
-        document.head.appendChild(css)
-      }
-      await new Promise((resolve, reject) => {
-        const existing = document.getElementById('maplibre-js')
-        if (existing) { existing.addEventListener('load', resolve); existing.addEventListener('error', reject); return }
-        const s = document.createElement('script')
-        s.id = 'maplibre-js'
-        s.src = MAPLIBRE_JS
-        s.onload = resolve
-        s.onerror = reject
-        document.head.appendChild(s)
-      })
-    }
-
-    function bilingualTextField() {
-      return [
-        'case',
-        ['all', ['has', 'name:ja'], ['any', ['has', 'name:en'], ['has', 'name:latin']]],
-        [
-          'format',
-          ['get', 'name:ja'], {},
-          '\n', {},
-          ['coalesce', ['get', 'name:en'], ['get', 'name:latin']], { 'font-scale': 0.75 },
-        ],
-        ['coalesce', ['get', 'name:ja'], ['get', 'name:latin'], ['get', 'name:en'], ['get', 'name']],
-      ]
-    }
-
-    function applyBilingualLabels() {
-      const layers = map.getStyle().layers || []
-      const ids = []
-      for (const layer of layers) {
-        if (layer.type !== 'symbol') continue
-        if (!layer.layout || !('text-field' in layer.layout)) continue
-        ids.push(layer.id)
-        try { map.setLayoutProperty(layer.id, 'text-field', bilingualTextField()) } catch {}
-      }
-      labelLayerIds = ids
-    }
-
-    // Cherche dans les labels EFFECTIVEMENT rendus par MapLibre celui dont
-    // l'ancre est la plus proche du centre. On ignore les features sans
-    // géométrie de Point (routes, polygones administratifs) — ce sont des
-    // labels secondaires peu utiles à l'étymologie. Si la mire vise au beau
-    // milieu de Hiroshima alors que seul « 広島市 » est tracé, c'est ce
-    // label qu'on récupère — pas un quartier invisible.
-    function findVisibleLabelAtCenter() {
-      if (!labelLayerIds.length) return null
-      let features
-      try { features = map.queryRenderedFeatures({ layers: labelLayerIds }) }
-      catch { return null }
-      if (!features?.length) return null
-      const c = map.project(map.getCenter())
-      let best = null
-      let bestDist = Infinity
-      for (const f of features) {
-        const p = f.properties || {}
-        const ja = p['name:ja'] || p.name
-        if (!ja) continue
-        if (f.geometry?.type !== 'Point') continue
-        const px = map.project({ lng: f.geometry.coordinates[0], lat: f.geometry.coordinates[1] })
-        const dx = px.x - c.x, dy = px.y - c.y
-        const d = Math.hypot(dx, dy)
-        if (d < bestDist) { bestDist = d; best = f }
-      }
-      if (!best) return null
-      const p = best.properties || {}
-      return {
-        ja: p['name:ja'] || p.name,
-        en: p['name:en'] || p['name:latin'] || null,
-      }
-    }
-
-    async function init() {
-      try { await ensureMaplibre() } catch {
-        if (!cancelled) setHint('Impossible de charger la carte (réseau ?).')
-        return
-      }
-      if (cancelled || !containerRef.current) return
-      const ml = window.maplibregl
-      // On reprend la dernière vue sauvegardée localement (pan + zoom).
-      // Première visite ou cache vidé → on retombe sur Tokyo.
-      const saved = loadMapView()
-      map = new ml.Map({
-        container: containerRef.current,
-        style: MAP_STYLE,
-        center: saved ? [saved.lng, saved.lat] : [139.6503, 35.6762],
-        zoom: saved ? saved.zoom : 10,
-        attributionControl: true,
-      })
-      map.addControl(new ml.NavigationControl({ showCompass: false }), 'top-right')
-
-      map.on('load', () => {
-        setLoading(false)
-        applyBilingualLabels()
-      })
-      map.on('styledata', () => { if (map.isStyleLoaded()) applyBilingualLabels() })
-
-      // Au repos du geste, on identifie le lieu au centre. Stratégie en deux temps :
-      //   1) on regarde le label EFFECTIVEMENT rendu par MapLibre le plus proche
-      //      du centre — c'est ce que l'utilisateur voit. Pas d'appel réseau.
-      //   2) si rien de visible (zoom trop large, océan…), repli sur Nominatim.
-      // L'analyse Opus n'est jamais lancée tant que le bouton n'est pas cliqué.
-      map.on('movestart', () => setCandidate(null))
-      map.on('moveend', () => {
-        // Mémorisation immédiate de la vue courante (pan + zoom) — utilisé
-        // au prochain chargement pour reprendre là où on s'était arrêté.
-        const c = map.getCenter()
-        saveMapView(c.lng, c.lat, map.getZoom())
-        clearTimeout(debounce)
-        debounce = setTimeout(async () => {
-          // 1) Lecture des labels rendus
-          const visible = findVisibleLabelAtCenter()
-          if (visible) {
-            setCandidate(visible)
-            setHint(visible.en ? `📍 ${visible.ja} — ${visible.en}` : `📍 ${visible.ja}`)
-            return
-          }
-          // 2) Repli Nominatim
-          const c = map.getCenter()
-          const z = map.getZoom()
-          setHint('Identification du lieu au centre…')
-          const found = await reverseGeocode(c.lat, c.lng, z)
-          if (!found) { setHint('Aucun lieu nommé visible — déplace ou zoome encore.'); setCandidate(null); return }
-          setCandidate({ ja: found.ja, en: found.en })
-          setHint(found.en ? `📍 ${found.ja} — ${found.en}` : `📍 ${found.ja}`)
-        }, 600)
-      })
-    }
-
-    init()
-    return () => {
-      cancelled = true
-      clearTimeout(debounce)
-      map?.remove()
-    }
-  }, [])
-
-  return (
-    <div className="map-picker">
-      <div ref={containerRef} className="map-picker-canvas" />
-
-      {/* Étiquette centrale qui suit le centre de la carte : kanji + romaji du
-          lieu courant. Remplace la mire — elle indique la cible ET donne le
-          résultat de l'identification d'un coup d'œil. */}
-      <div className="map-picker-overlay" aria-live="polite">
-        {candidate ? (
-          <>
-            <div className="map-picker-overlay-ja">{candidate.ja}</div>
-            {candidate.en && <div className="map-picker-overlay-en">{candidate.en}</div>}
-          </>
-        ) : (
-          <div className="map-picker-overlay-placeholder">⊙ centre la cible sur un lieu</div>
-        )}
-      </div>
-
-      {loading && <div className="map-picker-loading">Chargement de la carte…</div>}
-
-      {candidate ? (
-        <div className="map-picker-confirm-wrap">
-          <button
-            className="map-picker-confirm"
-            onClick={() => runRef.current?.(candidate.ja, candidate.en)}
-            title="Lance l'analyse étymologique de ce lieu (appel API)"
-          >
-            ✓ Analyser ce lieu
-          </button>
-        </div>
-      ) : (
-        <div className="map-picker-hint">{hint}</div>
-      )}
-    </div>
-  )
-}
 
 const HAS_KANJI = /[㐀-鿿豈-﫿]/
 
@@ -690,10 +466,10 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onS
 
   return (
     <div>
-      <MapPicker runRef={runRef} />
       <p className="howto">
-        💡 Centre un lieu sur la carte (le nom s’affiche au centre) puis clique <strong>« Analyser ce lieu »</strong>.
-        Ou tape un nom / colle un lien Maps / des coordonnées ci-dessous.
+        💡 Depuis Google Maps mobile : sélectionne un lieu → <strong>Partager → Namae</strong>.
+        Ou tape un nom ci-dessous (autocomplétion sur les lieux du Japon), colle un lien Maps,
+        ou des coordonnées <code>lat, lng</code>. Le lieu apparaîtra ensuite sur la carte au bas de l’analyse.
       </p>
 
       <div className="search-row">
@@ -2246,73 +2022,6 @@ const CSS = `
 .ac-jp { font-family: 'Noto Serif JP', serif; font-size: 17px; color: #f472b6; line-height: 1.2; }
 .ac-en { font-weight: 600; color: #e8edf5; font-size: 13.5px; }
 .ac-full { font-size: 11.5px; color: #94a3b8; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-/* Sélecteur de lieu par carte (Leaflet + Nominatim) */
-.map-picker { position: relative; margin: 0 0 16px; }
-.map-picker-canvas {
-  width: 100%; height: 320px;
-  border: 1px solid #2a3a54; border-radius: 14px; overflow: hidden;
-  background: #161e2e;
-}
-.map-picker-canvas .maplibregl-canvas { filter: brightness(0.85) contrast(1.05); }
-.maplibregl-ctrl-attrib { font-size: 10px; opacity: 0.7; }
-
-/* Étiquette centrale superposée à la carte (remplace la mire). */
-.map-picker-overlay {
-  position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex; flex-direction: column; align-items: center;
-  pointer-events: none; z-index: 500; user-select: none;
-  text-align: center;
-}
-.map-picker-overlay-ja {
-  font-family: 'Noto Serif JP', serif;
-  font-size: 38px; line-height: 1.1; font-weight: 600;
-  color: #f472b6;
-  text-shadow:
-    0 0 3px #0f1623, 0 0 6px #0f1623, 0 0 10px #0f1623,
-    -1px -1px 0 rgba(15,22,35,.9), 1px 1px 0 rgba(15,22,35,.9);
-}
-.map-picker-overlay-en {
-  font-family: 'DM Serif Display', serif;
-  font-size: 16px; font-style: italic;
-  color: #fdf2f8; margin-top: 2px;
-  text-shadow: 0 0 3px #0f1623, 0 0 6px #0f1623, -1px -1px 0 rgba(15,22,35,.9), 1px 1px 0 rgba(15,22,35,.9);
-}
-.map-picker-overlay-placeholder {
-  font-size: 13px; font-weight: 500;
-  color: rgba(244,114,182,.85);
-  text-shadow: 0 0 4px #0f1623, 0 0 8px #0f1623;
-  letter-spacing: .02em;
-}
-.map-picker-loading {
-  position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
-  font-size: 13px; color: #e8edf5;
-  background: rgba(15,22,35,.75); padding: 4px 12px; border-radius: 999px;
-}
-.map-picker-hint {
-  font-size: 13px; color: #94a3b8; line-height: 1.5;
-  margin-top: 10px; padding: 0 4px;
-}
-.map-picker-confirm-wrap {
-  display: flex; justify-content: center; margin-top: 12px;
-  animation: foundIn .2s ease-out;
-}
-@keyframes foundIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
-.map-picker-confirm {
-  font-family: inherit; font-size: 15px; font-weight: 600;
-  background: #f472b6; color: #0f1623; border: none;
-  padding: 11px 26px; border-radius: 999px; cursor: pointer;
-  box-shadow: 0 6px 18px rgba(244,114,182,.30);
-  transition: filter .15s, transform .12s;
-}
-.map-picker-confirm:hover { filter: brightness(1.07); transform: translateY(-1px); }
-.map-picker-confirm:active { transform: translateY(0); }
-
-@media (max-width: 560px) {
-  .map-picker-overlay-ja { font-size: 32px; }
-  .map-picker-overlay-en { font-size: 14px; }
-}
 
 /* Recherche */
 .search { display: flex; gap: 10px; margin-bottom: 14px; }
