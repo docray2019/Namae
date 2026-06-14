@@ -1067,6 +1067,153 @@ function KatakanaPage() {
           </tbody>
         </table>
       </section>
+
+      <section className="readings-section readings-hokkaido">
+        <h3 className="readings-h">Comment l’anglais devient japonais</h3>
+        <p>
+          Le japonais ne sait pas prononcer un mot étranger tel quel. Sa structure
+          phonétique impose des règles d’adaptation systématiques. Comprendre ces
+          règles te permet de <strong>reconnaître à coup sûr</strong> ce que
+          « フォトグラフィー » ou « ハンバーガー » signifie en V.O.
+        </p>
+
+        <h4 className="readings-h4">Les 5 contraintes du japonais</h4>
+        <ul className="rules-list">
+          <li><strong>1. Pas de consonnes seules</strong> (sauf <em>n</em>). Chaque consonne doit être suivie d’une voyelle. <em>Tree</em> ne peut pas exister tel quel — il faut intercaler des voyelles.</li>
+          <li><strong>2. Pas de groupes consonantiques</strong> comme <em>tr</em>, <em>str</em>, <em>spl</em>. On insère une voyelle entre les deux : <em>tree</em> → tu-rī.</li>
+          <li><strong>3. Pas de L</strong>, qui devient systématiquement <strong>R</strong>. <em>Hotel</em> → ho-te-ru.</li>
+          <li><strong>4. Pas de V</strong> historiquement, qui devient <strong>B</strong>. <em>Volvo</em> → ボルボ (boru-bo). (ヴ existe pour rendre v en transcription savante, mais reste marginal.)</li>
+          <li><strong>5. Pas de TH</strong>. <em>Three</em> → スリー (su-rī), <em>that</em> → ザット (zatto).</li>
+        </ul>
+
+        <h4 className="readings-h4">La voyelle d’insertion : presque toujours <em>u</em></h4>
+        <p>
+          Quand le japonais doit ajouter une voyelle pour casser un groupe de consonnes
+          ou pour fermer un mot, c’est presque toujours <strong>u</strong> qu’il
+          utilise — sauf après <em>t</em> et <em>d</em> où c’est <em>o</em>
+          (pour éviter les sons « tu » et « du » qui n’existent pas en japonais natif).
+        </p>
+        <div className="rules-grid">
+          <div className="rule-row"><span className="rr-en">strike</span><span className="rr-arrow">→</span><span className="rr-jp">ストライク</span><span className="rr-rom">su-to-ra-i-ku</span></div>
+          <div className="rule-row"><span className="rr-en">milk</span><span className="rr-arrow">→</span><span className="rr-jp">ミルク</span><span className="rr-rom">mi-ru-ku</span></div>
+          <div className="rule-row"><span className="rr-en">cat</span><span className="rr-arrow">→</span><span className="rr-jp">キャット</span><span className="rr-rom">kya-tto (le t final + voyelle <em>o</em>)</span></div>
+          <div className="rule-row"><span className="rr-en">bed</span><span className="rr-arrow">→</span><span className="rr-jp">ベッド</span><span className="rr-rom">be-ddo</span></div>
+        </div>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">La règle du <em>u</em> qui disparaît</h3>
+        <p>
+          C’est <strong>la</strong> règle qui explique pourquoi un mot écrit
+          スカイ se prononce « skaï » et pas « sou-kaï ». En japonais, le son
+          <em>u</em> entre deux consonnes sourdes (k, s, sh, t, ts, ch, h, f, p)
+          ou en finale est <strong>fortement raccourci, voire chuchoté</strong>
+          (les linguistes appellent ça <em>la dévoisement vocalique</em> —
+          <em>boin no museika</em>, 母音の無声化).
+        </p>
+        <div className="devoice-grid">
+          <div className="dv-card">
+            <div className="dv-jp">スカイ</div>
+            <div className="dv-spell">su-ka-i</div>
+            <div className="dv-real">→ « <strong>s</strong>kai » <span className="dv-note">(le u disparaît entre s et k)</span></div>
+          </div>
+          <div className="dv-card">
+            <div className="dv-jp">です</div>
+            <div className="dv-spell">de-su</div>
+            <div className="dv-real">→ « de<strong>s</strong> » <span className="dv-note">(u final entre s et silence)</span></div>
+          </div>
+          <div className="dv-card">
+            <div className="dv-jp">クッキー</div>
+            <div className="dv-spell">ku-kkī</div>
+            <div className="dv-real">→ « <strong>k</strong>kī » <span className="dv-note">(u initial avalé)</span></div>
+          </div>
+          <div className="dv-card">
+            <div className="dv-jp">寿司</div>
+            <div className="dv-spell">su-shi</div>
+            <div className="dv-real">→ « <strong>s</strong>shi » <span className="dv-note">(u entre s et sh — disparaît presque)</span></div>
+          </div>
+        </div>
+        <p className="kana-table-note">
+          Ne te demande pas si <em>tu dois</em> avaler le u : c’est automatique en parlant vite.
+          L’écrire en romaji avec un « u » comme dans <em>sukai</em> est une convention pour fixer
+          l’orthographe, pas la prononciation.
+        </p>
+      </section>
+
+      <section className="readings-section readings-toponyms">
+        <h3 className="readings-h">Cas d’école : スカイツリー — Tokyo Skytree</h3>
+        <p>
+          La tour Skytree à Tōkyō (634 m, la plus haute du Japon) tire son nom de l’anglais
+          <em> Sky Tree</em>. Voyons comment chaque syllabe passe d’un système à l’autre.
+        </p>
+        <div className="schema schema-ateji" style={{ borderColor: 'rgba(56,189,248,.4)' }}>
+          <div className="schema-title">📐 Schéma : « Skytree » → スカイツリー</div>
+          <div className="skytree-flow">
+            <div className="stf-pair">
+              <div className="stf-en">sky</div>
+              <div className="stf-arrow">→</div>
+              <div className="stf-jp">スカイ</div>
+              <div className="stf-rom">su-ka-i</div>
+            </div>
+            <div className="stf-explain">
+              <strong>s + k</strong> est un groupe consonantique → on intercale un <em>u</em>
+              (« su »). Puis le diphtongue <em>-y</em> de <em>sky</em> donne <em>a-i</em>
+              (deux syllabes en japonais !). Le <em>u</em> dans <em>su</em> est entre deux
+              consonnes sourdes → on l’avale presque. À l’oral : « <strong>skai</strong> ».
+            </div>
+            <div className="stf-chars">
+              <div className="stf-char"><span className="stf-glyph">ス</span><span className="stf-sub">su</span></div>
+              <div className="stf-char"><span className="stf-glyph">カ</span><span className="stf-sub">ka</span></div>
+              <div className="stf-char"><span className="stf-glyph">イ</span><span className="stf-sub">i</span></div>
+            </div>
+
+            <div className="stf-pair">
+              <div className="stf-en">tree</div>
+              <div className="stf-arrow">→</div>
+              <div className="stf-jp">ツリー</div>
+              <div className="stf-rom">tsu-rī</div>
+            </div>
+            <div className="stf-explain">
+              <strong>t + r</strong> est un autre groupe consonantique → on insère une voyelle
+              entre les deux. Mais le japonais n’a pas de son « tu » (le ト → to, le ツ → <em>tsu</em>).
+              Donc <em>t</em> + voyelle d’insertion devient ツ (tsu). Puis <em>r</em> reprend
+              la voyelle finale du mot anglais : <em>ee</em> → <strong>ī</strong> (long), noté リー
+              avec le tiret allongeur ー. Et le <em>L</em> n’existant pas, c’était de toute façon
+              un <em>r</em>.
+            </div>
+            <div className="stf-chars">
+              <div className="stf-char"><span className="stf-glyph">ツ</span><span className="stf-sub">tsu</span></div>
+              <div className="stf-char"><span className="stf-glyph">リ</span><span className="stf-sub">ri</span></div>
+              <div className="stf-char"><span className="stf-glyph">ー</span><span className="stf-sub">(long)</span></div>
+            </div>
+
+            <div className="stf-result">
+              <div className="stf-result-label">Résultat</div>
+              <div className="stf-result-jp">スカイツリー</div>
+              <div className="stf-result-rom"><strong>sukai tsurī</strong>, prononcé « <strong>skai tsurī</strong> »</div>
+              <div className="stf-result-en">= Sky Tree</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">D’autres conversions à reconnaître</h3>
+        <div className="rules-grid">
+          <div className="rule-row"><span className="rr-en">coffee</span><span className="rr-arrow">→</span><span className="rr-jp">コーヒー</span><span className="rr-rom">kōhī (les voyelles longues prennent ー)</span></div>
+          <div className="rule-row"><span className="rr-en">McDonald’s</span><span className="rr-arrow">→</span><span className="rr-jp">マクドナルド</span><span className="rr-rom">ma-ku-do-na-ru-do (insertions partout)</span></div>
+          <div className="rule-row"><span className="rr-en">computer</span><span className="rr-arrow">→</span><span className="rr-jp">コンピューター</span><span className="rr-rom">ko-n-pyū-tā</span></div>
+          <div className="rule-row"><span className="rr-en">hamburger</span><span className="rr-arrow">→</span><span className="rr-jp">ハンバーガー</span><span className="rr-rom">ha-n-bā-gā</span></div>
+          <div className="rule-row"><span className="rr-en">photograph</span><span className="rr-arrow">→</span><span className="rr-jp">フォトグラフ</span><span className="rr-rom">fo-to-gu-ra-fu</span></div>
+          <div className="rule-row"><span className="rr-en">élevator</span><span className="rr-arrow">→</span><span className="rr-jp">エレベーター</span><span className="rr-rom">e-re-bē-tā (L → R, V → B)</span></div>
+          <div className="rule-row"><span className="rr-en">bus</span><span className="rr-arrow">→</span><span className="rr-jp">バス</span><span className="rr-rom">ba-su (u final ≈ avalé : « bass »)</span></div>
+          <div className="rule-row"><span className="rr-en">desk</span><span className="rr-arrow">→</span><span className="rr-jp">デスク</span><span className="rr-rom">de-su-ku (u dévoisé entre s/k)</span></div>
+        </div>
+        <p className="kana-table-note">
+          Astuce : quand tu lis du katakana, prononce dans ta tête en supprimant les <em>u</em>
+          entre consonnes sourdes — tu retrouveras souvent le mot anglais d’origine.
+        </p>
+      </section>
     </>
   )
 }
@@ -2780,6 +2927,76 @@ const CSS = `
   background: rgba(244,114,182,.05); border-left: 3px solid #f472b6;
   padding: 12px 14px; border-radius: 0 10px 10px 0;
   font-size: 13.5px; color: #cbd5e1; line-height: 1.6; font-style: italic;
+}
+
+/* Page Katakana — adaptation phonétique de l'anglais */
+.readings-h4 { font-size: 15.5px; color: #e8edf5; margin: 16px 0 8px; font-weight: 700; }
+.rules-list { list-style: none; padding-left: 0; }
+.rules-list li { background: #161e2e; border: 1px solid #2a3a54; border-left: 3px solid #38bdf8; border-radius: 10px; padding: 10px 14px; margin-bottom: 6px; font-size: 13.5px; line-height: 1.55; color: #cbd5e1; }
+.rules-grid { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
+.rule-row {
+  display: grid; grid-template-columns: 110px 22px 1fr 1.2fr; gap: 10px;
+  align-items: center; padding: 8px 12px;
+  background: #161e2e; border: 1px solid #2a3a54; border-radius: 10px;
+  font-size: 13.5px;
+}
+.rr-en { font-style: italic; color: #cbd5e1; font-weight: 600; }
+.rr-arrow { color: #38bdf8; font-weight: 700; text-align: center; }
+.rr-jp { font-family: 'Noto Serif JP', serif; font-size: 18px; color: #38bdf8; }
+.rr-rom { color: #94a3b8; font-size: 12.5px; font-style: italic; }
+
+.devoice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin: 12px 0; }
+.dv-card { background: #161e2e; border: 1px solid #2a3a54; border-left: 3px solid #fb923c; border-radius: 12px; padding: 12px; }
+.dv-jp { font-family: 'Noto Serif JP', serif; font-size: 28px; color: #38bdf8; line-height: 1; margin-bottom: 4px; }
+.dv-spell { font-family: 'DM Mono', monospace; font-size: 12.5px; color: #94a3b8; margin-bottom: 8px; }
+.dv-real { font-size: 13.5px; color: #e8edf5; line-height: 1.5; }
+.dv-real strong { color: #fb923c; }
+.dv-note { color: #94a3b8; font-size: 12px; font-style: italic; display: block; margin-top: 2px; }
+
+/* Skytree flow */
+.skytree-flow { display: flex; flex-direction: column; gap: 12px; }
+.stf-pair {
+  display: grid; grid-template-columns: 1fr auto 1fr 1fr; gap: 12px;
+  align-items: center;
+  background: #0f1623; border: 1px solid #2a3a54; border-radius: 10px;
+  padding: 12px 14px;
+}
+.stf-en { font-style: italic; color: #cbd5e1; font-size: 16px; font-weight: 600; }
+.stf-arrow { color: #38bdf8; font-weight: 700; font-size: 20px; text-align: center; }
+.stf-jp { font-family: 'Noto Serif JP', serif; font-size: 26px; color: #38bdf8; }
+.stf-rom { font-size: 13px; color: #cbd5e1; font-style: italic; }
+.stf-explain {
+  background: rgba(56,189,248,.06); border-left: 3px solid #38bdf8;
+  padding: 10px 14px; border-radius: 0 10px 10px 0;
+  font-size: 13.5px; color: #cbd5e1; line-height: 1.6;
+}
+.stf-explain strong { color: #38bdf8; }
+.stf-explain em { color: #fdf2f8; font-style: italic; }
+.stf-chars { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.stf-char {
+  display: flex; flex-direction: column; align-items: center;
+  background: #161e2e; border: 1px solid #2a3a54; border-radius: 10px;
+  padding: 8px 12px; min-width: 56px;
+}
+.stf-glyph { font-family: 'Noto Serif JP', serif; font-size: 28px; color: #38bdf8; line-height: 1; }
+.stf-sub { font-size: 11px; color: #94a3b8; margin-top: 4px; font-style: italic; }
+.stf-result {
+  background: linear-gradient(180deg, rgba(56,189,248,.10) 0%, rgba(56,189,248,.04) 100%);
+  border: 1px solid rgba(56,189,248,.45); border-radius: 12px;
+  padding: 14px 16px; text-align: center; margin-top: 4px;
+}
+.stf-result-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; margin-bottom: 4px; font-weight: 600; }
+.stf-result-jp { font-family: 'Noto Serif JP', serif; font-size: 36px; color: #38bdf8; line-height: 1.1; margin-bottom: 4px; }
+.stf-result-rom { font-size: 14.5px; color: #e8edf5; }
+.stf-result-rom strong { color: #38bdf8; }
+.stf-result-en { font-size: 13px; color: #94a3b8; font-style: italic; margin-top: 4px; }
+
+@media (max-width: 560px) {
+  .rule-row { grid-template-columns: 1fr 22px 1fr; }
+  .rr-rom { grid-column: 1 / -1; padding-left: 8px; }
+  .stf-pair { grid-template-columns: 1fr; gap: 4px; text-align: center; }
+  .stf-arrow { transform: rotate(90deg); }
+  .stf-result-jp { font-size: 28px; }
 }
 
 /* ═══ Schémas pédagogiques ════════════════════════════════════════════ */
