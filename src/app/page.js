@@ -158,7 +158,7 @@ function KanjiCard({ comp, big, reading }) {
 
 const HAS_KANJI = /[㐀-鿿豈-﫿]/
 
-const ROLE_COLOR = { prefix: '#fb923c', core: '#f472b6', suffix: '#2dd4bf' }
+const ROLE_COLOR = { prefix: '#fb923c', core: '#84cc16', suffix: '#2dd4bf' }
 
 // Détecte le script japonais d'un segment (kanji, hiragana, katakana, ou
 // mélange). Retourne null si aucun script japonais n'est détecté.
@@ -176,7 +176,7 @@ function detectScript(text) {
 }
 
 const SCRIPT_BADGE = {
-  kanji:    { label: '漢字', fr: 'Kanji',    color: '#f472b6' },
+  kanji:    { label: '漢字', fr: 'Kanji',    color: '#84cc16' },
   hiragana: { label: 'ひら', fr: 'Hiragana', color: '#4ade80' },
   katakana: { label: 'カタ', fr: 'Katakana', color: '#38bdf8' },
   mixed:    { label: '混',   fr: 'Mixte',    color: '#fb923c' },
@@ -1700,7 +1700,7 @@ function ScriptsPage({ currentParts }) {
       <h2 className="readings-title">Mélanger les trois écritures <span className="readings-jp">混</span></h2>
       <p className="readings-lede">
         Le japonais écrit <strong>combine couramment trois systèmes</strong> dans la même phrase,
-        parfois dans le même mot : <span style={{ color: '#f472b6' }}><strong>kanji</strong></span>{' '}
+        parfois dans le même mot : <span style={{ color: '#84cc16' }}><strong>kanji</strong></span>{' '}
         pour le sens, <span style={{ color: '#4ade80' }}><strong>hiragana</strong></span> pour
         la grammaire et les mots natifs, <span style={{ color: '#38bdf8' }}><strong>katakana</strong></span>{' '}
         pour les mots venus d’ailleurs. Les toponymes japonais en sont une vitrine miniature.
@@ -1747,7 +1747,7 @@ function ScriptsPage({ currentParts }) {
           <li><strong>Katakana</strong> カ — anguleux mais simple, beaucoup d’angles droits, peu de traits.</li>
         </ul>
         <div className="scripts-spot">
-          <div className="ss-row"><span className="ss-jp ss-kanji">海 山 川 京 東</span><span className="ss-tag" style={{ color: '#f472b6' }}>kanji</span></div>
+          <div className="ss-row"><span className="ss-jp ss-kanji">海 山 川 京 東</span><span className="ss-tag" style={{ color: '#84cc16' }}>kanji</span></div>
           <div className="ss-row"><span className="ss-jp ss-hira">の あ ま と が り</span><span className="ss-tag" style={{ color: '#4ade80' }}>hiragana</span></div>
           <div className="ss-row"><span className="ss-jp ss-kata">タ ワ ー コ ヒ ー</span><span className="ss-tag" style={{ color: '#38bdf8' }}>katakana</span></div>
         </div>
@@ -2568,7 +2568,7 @@ const CSS = `
 }
 .header { text-align: center; margin-bottom: 28px; }
 .brand { display: inline-flex; align-items: baseline; gap: 12px; }
-.brand-jp { font-family: 'Noto Serif JP', serif; font-size: 40px; color: #f472b6; }
+.brand-jp { font-family: 'Noto Serif JP', serif; font-size: 40px; color: #84cc16; }
 .brand-name { font-family: 'DM Serif Display', serif; font-size: 40px; color: #e8edf5; }
 .tagline { font-size: 15px; color: #94a3b8; margin: 10px auto 0; max-width: 520px; line-height: 1.5; }
 
@@ -2579,7 +2579,7 @@ const CSS = `
   padding: 10px 18px; border-radius: 999px; cursor: pointer; transition: all .15s;
 }
 .tab:hover { color: #e8edf5; border-color: #3b4d6b; }
-.tab.on { background: #f472b6; color: #0f1623; border-color: #f472b6; font-weight: 600; }
+.tab.on { background: #84cc16; color: #0f1623; border-color: #84cc16; font-weight: 600; }
 
 .main { min-height: 300px; }
 
@@ -2595,31 +2595,31 @@ const CSS = `
 
 .howto {
   font-size: 13.5px; color: #cbd5e1; line-height: 1.6;
-  background: rgba(244,114,182,.07); border: 1px solid rgba(244,114,182,.25);
+  background: rgba(132,204,22,.07); border: 1px solid rgba(132,204,22,.25);
   border-radius: 12px; padding: 12px 16px; margin: 0 0 16px;
 }
-.howto strong { color: #f9a8d4; font-weight: 600; }
+.howto strong { color: #bef264; font-weight: 600; }
 
 /* Ligne de saisie : 📋 + input + Analyser */
 .search-row { display: flex; gap: 8px; margin: 0 0 18px; align-items: stretch; }
 .paste-mini {
   font-size: 18px; line-height: 1;
-  background: #161e2e; color: #f9a8d4; border: 1px solid #2a3a54;
+  background: #161e2e; color: #bef264; border: 1px solid #2a3a54;
   border-radius: 10px; padding: 0 12px; cursor: pointer;
   transition: border-color .15s, color .15s, background .15s;
 }
-.paste-mini:hover { border-color: #f472b6; color: #f472b6; background: #1c2740; }
+.paste-mini:hover { border-color: #84cc16; color: #84cc16; background: #1c2740; }
 .search-input {
   flex: 1; min-width: 0;
   font-family: inherit; font-size: 14.5px;
   background: #161e2e; color: #e8edf5; border: 1px solid #2a3a54;
   border-radius: 10px; padding: 10px 14px; outline: none;
 }
-.search-input:focus { border-color: #f472b6; }
+.search-input:focus { border-color: #84cc16; }
 .search-input::placeholder { color: #64748b; font-size: 13px; }
 .search-btn-mini {
   font-family: inherit; font-size: 14px; font-weight: 600;
-  background: #f472b6; color: #0f1623; border: none;
+  background: #84cc16; color: #0f1623; border: none;
   border-radius: 10px; padding: 0 18px; cursor: pointer; transition: filter .15s;
 }
 .search-btn-mini:hover:not(:disabled) { filter: brightness(1.08); }
@@ -2643,8 +2643,8 @@ const CSS = `
   padding: 10px 12px; border-radius: 8px; cursor: pointer;
   transition: background .12s, border-color .12s;
 }
-.ac-item:hover, .ac-item:focus { background: #1c2740; border-color: #f472b6; outline: none; }
-.ac-jp { font-family: 'Noto Serif JP', serif; font-size: 17px; color: #f472b6; line-height: 1.2; }
+.ac-item:hover, .ac-item:focus { background: #1c2740; border-color: #84cc16; outline: none; }
+.ac-jp { font-family: 'Noto Serif JP', serif; font-size: 17px; color: #84cc16; line-height: 1.2; }
 .ac-en { font-weight: 600; color: #e8edf5; font-size: 13.5px; }
 .ac-full { font-size: 11.5px; color: #94a3b8; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -2655,10 +2655,10 @@ const CSS = `
   background: #161e2e; color: #e8edf5; border: 1px solid #2a3a54;
   border-radius: 12px; padding: 14px 16px; outline: none;
 }
-.search-input:focus { border-color: #f472b6; }
+.search-input:focus { border-color: #84cc16; }
 .search-btn {
   font-family: inherit; font-size: 15px; font-weight: 600;
-  background: #f472b6; color: #0f1623; border: none;
+  background: #84cc16; color: #0f1623; border: none;
   border-radius: 12px; padding: 0 22px; cursor: pointer; transition: filter .15s;
 }
 .search-btn:hover { filter: brightness(1.08); }
@@ -2669,8 +2669,8 @@ const CSS = `
   background: transparent; color: #cbd5e1; border: 1px solid #2a3a54;
   padding: 7px 13px; border-radius: 999px; cursor: pointer; transition: all .15s;
 }
-.chip:hover { border-color: #f472b6; color: #fff; }
-.chip.on { background: #f472b6; color: #0f1623; border-color: #f472b6; font-weight: 600; }
+.chip:hover { border-color: #84cc16; color: #fff; }
+.chip.on { background: #84cc16; color: #0f1623; border-color: #84cc16; font-weight: 600; }
 
 /* Carte de décomposition */
 .card {
@@ -2679,7 +2679,7 @@ const CSS = `
 }
 .card-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
 .card-title { font-family: 'DM Serif Display', serif; font-size: 24px; }
-.resolved { font-family: 'Noto Serif JP', serif; color: #f472b6; }
+.resolved { font-family: 'Noto Serif JP', serif; color: #84cc16; }
 .latin { font-family: 'DM Serif Display', serif; color: #94a3b8; font-size: 0.78em; font-style: italic; }
 .card-sub { font-size: 13px; color: #94a3b8; }
 
@@ -2711,7 +2711,7 @@ const CSS = `
 .kcard.is-suffix .kcard-romaji { font-size: 15px; }
 
 .empty { color: #94a3b8; font-size: 14px; margin: 16px 0 0; line-height: 1.6; }
-.inline-ex { background: none; border: none; color: #f472b6; cursor: pointer; font: inherit; padding: 0; text-decoration: underline; }
+.inline-ex { background: none; border: none; color: #84cc16; cursor: pointer; font: inherit; padding: 0; text-decoration: underline; }
 
 .section-h { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; margin: 0 0 12px; }
 .details { margin-bottom: 24px; }
@@ -2735,22 +2735,22 @@ const CSS = `
 .alts { font-size: 12.5px; color: #94a3b8; margin: -4px 0 12px 8px; padding-left: 12px; border-left: 2px solid #2a3a54; }
 
 /* Blocs spécifiques à l'analyse IA */
-.ai-short { font-family: 'DM Serif Display', serif; color: #f9a8d4; font-size: 18px; line-height: 1.5; margin: 0 0 14px; font-style: italic; }
+.ai-short { font-family: 'DM Serif Display', serif; color: #bef264; font-size: 18px; line-height: 1.5; margin: 0 0 14px; font-style: italic; }
 .share-row { display: flex; gap: 8px; margin: 0 0 16px; flex-wrap: wrap; }
 .share-btn {
   font-family: inherit; font-size: 13px; font-weight: 600;
-  background: #f472b6; color: #0f1623; border: none;
+  background: #84cc16; color: #0f1623; border: none;
   padding: 8px 14px; border-radius: 999px; cursor: pointer;
-  box-shadow: 0 4px 12px rgba(244,114,182,.25);
+  box-shadow: 0 4px 12px rgba(132,204,22,.25);
   transition: filter .15s, transform .12s;
   display: inline-flex; align-items: center; gap: 4px;
 }
 .share-btn:hover { filter: brightness(1.07); transform: translateY(-1px); }
 .share-btn:active { transform: translateY(0); }
 .share-btn-secondary {
-  background: transparent; color: #f9a8d4; border: 1px solid rgba(244,114,182,.4); box-shadow: none;
+  background: transparent; color: #bef264; border: 1px solid rgba(132,204,22,.4); box-shadow: none;
 }
-.share-btn-secondary:hover { background: rgba(244,114,182,.08); border-color: #f472b6; color: #f472b6; }
+.share-btn-secondary:hover { background: rgba(132,204,22,.08); border-color: #84cc16; color: #84cc16; }
 
 /* Animation d'attention sur le bouton « Copier » : flashes de plus en plus
    rapides pendant 5 s puis arrêt. Démarre dès l'apparition du bouton.
@@ -2759,24 +2759,24 @@ const CSS = `
   animation: copy-pulse 5s ease-in 1 forwards;
 }
 @keyframes copy-pulse {
-  0%   { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
-  4%   { box-shadow: 0 0 28px rgba(244,114,182,.95); transform: scale(1.06); }
-  10%  { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
-  22%  { box-shadow: 0 0 28px rgba(244,114,182,.95); transform: scale(1.06); }
-  30%  { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
-  40%  { box-shadow: 0 0 28px rgba(244,114,182,.95); transform: scale(1.06); }
-  47%  { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
-  55%  { box-shadow: 0 0 28px rgba(244,114,182,.95); transform: scale(1.06); }
-  61%  { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
-  68%  { box-shadow: 0 0 28px rgba(244,114,182,.95); transform: scale(1.06); }
-  73%  { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
-  79%  { box-shadow: 0 0 28px rgba(244,114,182,.95); transform: scale(1.06); }
-  83%  { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
-  88%  { box-shadow: 0 0 28px rgba(244,114,182,.95); transform: scale(1.06); }
-  91%  { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
-  95%  { box-shadow: 0 0 28px rgba(244,114,182,.95); transform: scale(1.06); }
-  98%  { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
-  100% { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
+  0%   { box-shadow: 0 4px 12px rgba(132,204,22,.25); transform: scale(1); }
+  4%   { box-shadow: 0 0 28px rgba(132,204,22,.95); transform: scale(1.06); }
+  10%  { box-shadow: 0 4px 12px rgba(132,204,22,.25); transform: scale(1); }
+  22%  { box-shadow: 0 0 28px rgba(132,204,22,.95); transform: scale(1.06); }
+  30%  { box-shadow: 0 4px 12px rgba(132,204,22,.25); transform: scale(1); }
+  40%  { box-shadow: 0 0 28px rgba(132,204,22,.95); transform: scale(1.06); }
+  47%  { box-shadow: 0 4px 12px rgba(132,204,22,.25); transform: scale(1); }
+  55%  { box-shadow: 0 0 28px rgba(132,204,22,.95); transform: scale(1.06); }
+  61%  { box-shadow: 0 4px 12px rgba(132,204,22,.25); transform: scale(1); }
+  68%  { box-shadow: 0 0 28px rgba(132,204,22,.95); transform: scale(1.06); }
+  73%  { box-shadow: 0 4px 12px rgba(132,204,22,.25); transform: scale(1); }
+  79%  { box-shadow: 0 0 28px rgba(132,204,22,.95); transform: scale(1.06); }
+  83%  { box-shadow: 0 4px 12px rgba(132,204,22,.25); transform: scale(1); }
+  88%  { box-shadow: 0 0 28px rgba(132,204,22,.95); transform: scale(1.06); }
+  91%  { box-shadow: 0 4px 12px rgba(132,204,22,.25); transform: scale(1); }
+  95%  { box-shadow: 0 0 28px rgba(132,204,22,.95); transform: scale(1.06); }
+  98%  { box-shadow: 0 4px 12px rgba(132,204,22,.25); transform: scale(1); }
+  100% { box-shadow: 0 4px 12px rgba(132,204,22,.25); transform: scale(1); }
 }
 .share-btn-attention:hover { animation: none; }
 @media (prefers-reduced-motion: reduce) { .share-btn-attention { animation: none; } }
@@ -2788,7 +2788,7 @@ const CSS = `
 }
 .ai-spinner {
   width: 16px; height: 16px;
-  border: 2px solid #2a3a54; border-top-color: #f472b6; border-radius: 50%;
+  border: 2px solid #2a3a54; border-top-color: #84cc16; border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -2861,13 +2861,13 @@ const CSS = `
 
 .krd-choice {
   margin-top: 8px; padding-left: 8px;
-  border-left: 2px solid #f472b6;
+  border-left: 2px solid #84cc16;
   font-size: 12.5px; color: #cbd5e1; line-height: 1.5; font-style: italic;
 }
 
 /* Bloc analogie : sidebar visuelle pour bien le séparer du reste. */
 .ai-analogy .ai-prose {
-  background: rgba(244,114,182,.06); border-left: 3px solid #f472b6;
+  background: rgba(132,204,22,.06); border-left: 3px solid #84cc16;
   padding: 12px 14px; border-radius: 0 10px 10px 0; font-style: italic;
 }
 
@@ -2875,11 +2875,11 @@ const CSS = `
 .krd-more {
   display: block; margin-top: 10px;
   font-family: inherit; font-size: 12.5px; font-weight: 600;
-  background: rgba(15,22,35,.5); color: #f9a8d4; border: 1px solid rgba(244,114,182,.3);
+  background: rgba(15,22,35,.5); color: #bef264; border: 1px solid rgba(132,204,22,.3);
   padding: 6px 12px; border-radius: 999px; cursor: pointer;
   transition: filter .15s, border-color .15s;
 }
-.krd-more:hover { filter: brightness(1.1); border-color: #f472b6; }
+.krd-more:hover { filter: brightness(1.1); border-color: #84cc16; }
 
 /* ═══ Page LECTURES ═══════════════════════════════════════════════════ */
 .readings-page { font-size: 15px; line-height: 1.7; color: #e8edf5; }
@@ -2898,19 +2898,19 @@ const CSS = `
   transition: all .15s;
 }
 .rsn:hover { color: #e8edf5; border-color: #3b4d6b; }
-.rsn.on { background: #f472b6; border-color: #f472b6; color: #0f1623; }
+.rsn.on { background: #84cc16; border-color: #84cc16; color: #0f1623; }
 .rsn-jp { font-family: 'Noto Serif JP', serif; font-size: 13px; line-height: 1; }
 .rsn-fr { font-size: 11.5px; font-weight: 600; margin-top: 2px; }
 .rsn.on .rsn-jp, .rsn.on .rsn-fr { color: #0f1623; }
 
 /* Page Kanji : stats + pictogrammes + compo */
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 12px 0; }
-.stat { background: #161e2e; border: 1px solid #2a3a54; border-left: 3px solid #f472b6; border-radius: 12px; padding: 12px 14px; }
-.stat-num { font-family: 'DM Serif Display', serif; font-size: 28px; color: #f472b6; line-height: 1.1; }
+.stat { background: #161e2e; border: 1px solid #2a3a54; border-left: 3px solid #84cc16; border-radius: 12px; padding: 12px 14px; }
+.stat-num { font-family: 'DM Serif Display', serif; font-size: 28px; color: #84cc16; line-height: 1.1; }
 .stat-label { font-size: 12.5px; color: #cbd5e1; margin-top: 4px; line-height: 1.4; }
 .kanji-pictograms { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 14px 0; }
 .kp-card { background: #161e2e; border: 1px solid #2a3a54; border-radius: 12px; padding: 14px; text-align: center; }
-.kp-glyph { font-family: 'Noto Serif JP', serif; font-size: 56px; color: #f472b6; line-height: 1; margin-bottom: 4px; }
+.kp-glyph { font-family: 'Noto Serif JP', serif; font-size: 56px; color: #84cc16; line-height: 1; margin-bottom: 4px; }
 .kp-rom { font-weight: 700; color: #e8edf5; font-size: 13px; }
 .kp-fr { color: #cbd5e1; font-size: 13px; margin: 2px 0 4px; }
 .kp-note { color: #94a3b8; font-size: 12px; font-style: italic; line-height: 1.4; }
@@ -2918,12 +2918,12 @@ const CSS = `
 .combo-step { background: #161e2e; border: 1px solid #2a3a54; border-radius: 12px; padding: 12px 16px; text-align: center; }
 .combo-glyph { font-family: 'Noto Serif JP', serif; font-size: 44px; color: #4ade80; line-height: 1; margin-bottom: 4px; }
 .combo-label { font-size: 12px; color: #cbd5e1; }
-.combo-arrow { font-size: 22px; color: #f472b6; font-weight: 700; }
+.combo-arrow { font-size: 22px; color: #84cc16; font-weight: 700; }
 .ex-list { list-style: none; padding: 0; }
 .ex-list li { background: #161e2e; border: 1px solid #2a3a54; border-radius: 10px; padding: 10px 14px; margin-bottom: 6px; font-size: 14px; }
-.ex-list .ex-jp { font-family: 'Noto Serif JP', serif; font-size: 18px; color: #f472b6; margin-right: 10px; }
-.inline-link { background: none; border: none; color: #f9a8d4; cursor: pointer; font: inherit; padding: 0; text-decoration: underline; }
-.inline-link:hover { color: #f472b6; }
+.ex-list .ex-jp { font-family: 'Noto Serif JP', serif; font-size: 18px; color: #84cc16; margin-right: 10px; }
+.inline-link { background: none; border: none; color: #bef264; cursor: pointer; font: inherit; padding: 0; text-decoration: underline; }
+.inline-link:hover { color: #84cc16; }
 
 /* Tableaux gojūon hiragana/katakana */
 .kana-table { display: flex; flex-direction: column; gap: 6px; background: #0f1623; border: 1px solid #2a3a54; border-radius: 12px; padding: 10px; margin: 10px 0; }
@@ -2940,40 +2940,40 @@ const CSS = `
 .is-kata .kt-jp { color: #38bdf8; }
 .kt-rom { font-size: 11px; color: #94a3b8; margin-top: 2px; font-weight: 600; }
 .kana-table-legend { font-size: 12.5px; color: #94a3b8; font-style: italic; margin: 8px 0; }
-.kana-table-note { font-size: 13px; color: #cbd5e1; background: #161e2e; border-left: 3px solid #f472b6; padding: 10px 12px; border-radius: 0 8px 8px 0; margin: 10px 0; line-height: 1.55; }
+.kana-table-note { font-size: 13px; color: #cbd5e1; background: #161e2e; border-left: 3px solid #84cc16; padding: 10px 12px; border-radius: 0 8px 8px 0; margin: 10px 0; line-height: 1.55; }
 
 .kana-compare { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 12px 0; background: #161e2e; border-radius: 12px; overflow: hidden; }
 .kana-compare th, .kana-compare td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #2a3a54; }
 .kana-compare th { background: #1c2740; color: #94a3b8; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; }
 .kana-compare tr:last-child td { border-bottom: none; }
-.kc-jp { font-family: 'Noto Serif JP', serif; font-size: 20px; color: #f472b6; text-align: center; }
+.kc-jp { font-family: 'Noto Serif JP', serif; font-size: 20px; color: #84cc16; text-align: center; }
 
 /* Page Rōmaji */
 .rom-systems { display: flex; flex-direction: column; gap: 10px; margin: 12px 0; }
 .rom-card { background: #161e2e; border: 1px solid #2a3a54; border-radius: 12px; padding: 14px 16px; }
-.rom-hepburn { border-left: 4px solid #f472b6; }
+.rom-hepburn { border-left: 4px solid #84cc16; }
 .rom-kunrei  { border-left: 4px solid #fb923c; }
 .rom-nihon   { border-left: 4px solid #94a3b8; }
 .rom-card-head { font-weight: 700; font-size: 15.5px; margin-bottom: 6px; color: #e8edf5; }
 .rom-card-tag { font-weight: 400; font-size: 12px; color: #94a3b8; font-style: italic; margin-left: 8px; }
 .rom-card p { margin: 0 0 8px; font-size: 13.5px; color: #cbd5e1; line-height: 1.55; }
 .rom-ex { font-family: 'Noto Serif JP', serif; font-size: 14px; color: #cbd5e1; background: #0f1623; border-radius: 6px; padding: 6px 10px; }
-.rom-ex strong { color: #f472b6; }
+.rom-ex strong { color: #84cc16; }
 .vowel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin: 12px 0; }
 .vow { background: #161e2e; border: 1px solid #2a3a54; border-left: 3px solid #4ade80; border-radius: 10px; padding: 10px 12px; }
-.vow-jp { font-family: 'Noto Serif JP', serif; font-size: 22px; color: #f472b6; margin-bottom: 4px; }
+.vow-jp { font-family: 'Noto Serif JP', serif; font-size: 22px; color: #84cc16; margin-bottom: 4px; }
 .vow-ok { color: #4ade80; font-weight: 600; font-size: 13.5px; }
 .vow-ko { color: #94a3b8; font-size: 12px; font-style: italic; margin-top: 2px; }
 
 /* Liens du glossaire (ateji, jukujikun…) dans les textes de l'IA */
 .gloss-link {
   font: inherit; font-style: italic; font-weight: 600;
-  background: rgba(244,114,182,.12); color: #f9a8d4;
-  border: none; border-bottom: 1px dotted #f472b6;
+  background: rgba(132,204,22,.12); color: #bef264;
+  border: none; border-bottom: 1px dotted #84cc16;
   padding: 0 3px; margin: 0 1px; border-radius: 3px;
   cursor: pointer; transition: background .15s, color .15s;
 }
-.gloss-link:hover { background: rgba(244,114,182,.25); color: #fff; }
+.gloss-link:hover { background: rgba(132,204,22,.25); color: #fff; }
 .gloss-link:after { content: ' ↗'; font-size: 0.78em; opacity: 0.65; }
 
 /* Page Ateji & Jukujikun : cartes par stratégie */
@@ -2983,12 +2983,12 @@ const CSS = `
 }
 .strat-a  { border-left: 4px solid #4ade80; }
 .strat-b  { border-left: 4px solid #fb923c; }
-.strat-c  { border-left: 4px solid #f472b6; }
+.strat-c  { border-left: 4px solid #84cc16; }
 .strat-jk { border-left: 4px solid #38bdf8; background: rgba(56,189,248,.05); }
 .strat-head { font-weight: 700; color: #e8edf5; font-size: 14.5px; margin-bottom: 8px; }
 .strat-eg { display: flex; align-items: center; gap: 10px; margin: 8px 0 10px; flex-wrap: wrap; font-size: 15px; color: #e8edf5; }
-.strat-jp { font-family: 'Noto Serif JP', serif; font-size: 28px; color: #f472b6; line-height: 1; }
-.strat-arrow { color: #f472b6; font-weight: 700; font-size: 20px; }
+.strat-jp { font-family: 'Noto Serif JP', serif; font-size: 28px; color: #84cc16; line-height: 1; }
+.strat-arrow { color: #84cc16; font-weight: 700; font-size: 20px; }
 .strat-card p { font-size: 13.5px; color: #cbd5e1; line-height: 1.6; margin: 6px 0 0; }
 .strat-card em { color: #fdf2f8; font-style: italic; }
 
@@ -3003,7 +3003,7 @@ const CSS = `
 .sb-row-jk .sb-label { color: #38bdf8; }
 .sb-row-aj .sb-label { color: #fb923c; }
 .sb-eg { font-size: 14px; color: #e8edf5; line-height: 1.5; }
-.sb-eg strong { color: #f472b6; }
+.sb-eg strong { color: #84cc16; }
 .sb-note { color: #94a3b8; font-style: italic; font-size: 12.5px; margin-left: 6px; }
 
 @media (max-width: 560px) {
@@ -3021,12 +3021,12 @@ const CSS = `
 }
 .readings-title {
   font-family: 'DM Serif Display', serif; font-size: 32px; line-height: 1.1;
-  margin: 0 0 8px; color: #f472b6;
+  margin: 0 0 8px; color: #84cc16;
 }
 .readings-jp { font-family: 'Noto Serif JP', serif; font-size: 22px; color: #fdf2f8; margin-left: 8px; }
 .readings-lede {
   font-size: 15.5px; color: #cbd5e1; line-height: 1.65;
-  background: rgba(244,114,182,.06); border-left: 3px solid #f472b6;
+  background: rgba(132,204,22,.06); border-left: 3px solid #84cc16;
   padding: 14px 16px; border-radius: 0 12px 12px 0;
   margin: 0 0 28px;
 }
@@ -3048,7 +3048,7 @@ const CSS = `
 }
 .kanji-spotlight-glyph {
   font-family: 'Noto Serif JP', serif; font-size: 88px; line-height: 1;
-  color: #f472b6; flex-shrink: 0;
+  color: #84cc16; flex-shrink: 0;
 }
 .kanji-spotlight-fr {
   font-family: 'DM Serif Display', serif; font-size: 22px; color: #e8edf5;
@@ -3101,7 +3101,7 @@ const CSS = `
 .hb-row:last-child { border-bottom: none; }
 .hb-kanji {
   font-family: 'Noto Serif JP', serif; font-size: 46px; line-height: 1;
-  color: #f472b6; text-align: center;
+  color: #84cc16; text-align: center;
 }
 .hb-vs { display: flex; flex-direction: column; gap: 4px; font-size: 13.5px; }
 .hb-on, .hb-kun { display: flex; gap: 8px; align-items: baseline; }
@@ -3126,7 +3126,7 @@ const CSS = `
 .analogy-table th, .analogy-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #2a3a54; }
 .analogy-table th { background: #1c2740; color: #94a3b8; font-size: 12.5px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
 .analogy-table tr:last-child td { border-bottom: none; }
-.analogy-table strong { color: #f9a8d4; font-weight: 700; }
+.analogy-table strong { color: #bef264; font-weight: 700; }
 
 /* Mémo */
 .memo-list { list-style: none; padding: 0; }
@@ -3137,7 +3137,7 @@ const CSS = `
 
 .readings-coda {
   text-align: center; font-size: 14px; color: #cbd5e1;
-  background: rgba(244,114,182,.05); border: 1px dashed rgba(244,114,182,.25);
+  background: rgba(132,204,22,.05); border: 1px dashed rgba(132,204,22,.25);
   border-radius: 12px; padding: 14px 16px;
   margin-top: 24px;
 }
@@ -3152,7 +3152,7 @@ const CSS = `
 }
 .toponym-card-irr { border-left-color: #fb923c; }
 .toponym-card-rev { border-left-color: #38bdf8; }
-.toponym-jp { font-family: 'Noto Serif JP', serif; font-size: 28px; color: #f472b6; line-height: 1; margin-bottom: 4px; }
+.toponym-jp { font-family: 'Noto Serif JP', serif; font-size: 28px; color: #84cc16; line-height: 1; margin-bottom: 4px; }
 .toponym-rom { font-weight: 700; color: #e8edf5; font-size: 14.5px; }
 .toponym-rule { font-size: 11px; color: #4ade80; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-top: 4px; }
 .toponym-card-irr .toponym-rule { color: #fb923c; }
@@ -3180,11 +3180,11 @@ const CSS = `
   background: #161e2e; border: 1px solid #2a3a54; border-radius: 14px;
   padding: 14px 16px; text-align: center;
 }
-.script-card-kanji { border-left: 4px solid #f472b6; }
+.script-card-kanji { border-left: 4px solid #84cc16; }
 .script-card-hira  { border-left: 4px solid #4ade80; }
 .script-card-kata  { border-left: 4px solid #38bdf8; }
 .script-card-label { font-family: 'Noto Serif JP', serif; font-size: 28px; line-height: 1; margin-bottom: 4px; }
-.script-card-kanji .script-card-label { color: #f472b6; }
+.script-card-kanji .script-card-label { color: #84cc16; }
 .script-card-hira  .script-card-label { color: #4ade80; }
 .script-card-kata  .script-card-label { color: #38bdf8; }
 .script-card-name { font-weight: 700; font-size: 14.5px; color: #e8edf5; margin-bottom: 8px; }
@@ -3195,7 +3195,7 @@ const CSS = `
 .ss-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px dashed #1c2740; }
 .ss-row:last-child { border-bottom: none; }
 .ss-jp { font-family: 'Noto Serif JP', serif; font-size: 22px; line-height: 1.2; letter-spacing: 4px; }
-.ss-kanji { color: #f472b6; }
+.ss-kanji { color: #84cc16; }
 .ss-hira  { color: #4ade80; }
 .ss-kata  { color: #38bdf8; }
 .ss-tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
@@ -3218,7 +3218,7 @@ const CSS = `
 }
 .sc-fr { font-size: 11px; color: #94a3b8; font-style: italic; }
 .scripts-coda {
-  background: rgba(244,114,182,.05); border-left: 3px solid #f472b6;
+  background: rgba(132,204,22,.05); border-left: 3px solid #84cc16;
   padding: 12px 14px; border-radius: 0 10px 10px 0;
   font-size: 13.5px; color: #cbd5e1; line-height: 1.6; font-style: italic;
 }
@@ -3312,7 +3312,7 @@ const CSS = `
 }
 .sch-native { border-left: 4px solid #4ade80; }
 .sch-import { border-left: 4px solid #38bdf8; }
-.sch-merge  { border-left: 4px solid #f472b6; }
+.sch-merge  { border-left: 4px solid #84cc16; }
 .sch-when { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: #64748b; margin-bottom: 6px; }
 .sch-headline { font-size: 12.5px; font-weight: 600; color: #cbd5e1; margin-bottom: 8px; }
 .sch-jp-big { font-family: 'Noto Serif JP', serif; font-size: 36px; color: #e8edf5; line-height: 1; margin: 6px 0; }
@@ -3320,15 +3320,15 @@ const CSS = `
 .sch-double { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
 .sch-half { font-size: 13px; color: #e8edf5; }
 .sch-half .ksr-tag { margin-right: 6px; vertical-align: middle; }
-.sch-arrow-h { display: flex; align-items: center; font-size: 22px; color: #f472b6; padding: 0 2px; font-weight: 700; }
+.sch-arrow-h { display: flex; align-items: center; font-size: 22px; color: #84cc16; padding: 0 2px; font-weight: 700; }
 
 /* Schéma 2 : arbre de décision */
 .dec-root {
   text-align: center; padding: 10px 14px;
-  background: rgba(244,114,182,.06); border: 1px solid rgba(244,114,182,.3); border-radius: 12px;
+  background: rgba(132,204,22,.06); border: 1px solid rgba(132,204,22,.3); border-radius: 12px;
   margin-bottom: 10px;
 }
-.dec-glyph { font-family: 'Noto Serif JP', serif; font-size: 38px; color: #f472b6; line-height: 1; margin-bottom: 4px; }
+.dec-glyph { font-family: 'Noto Serif JP', serif; font-size: 38px; color: #84cc16; line-height: 1; margin-bottom: 4px; }
 .dec-prompt { font-size: 13px; color: #e8edf5; font-style: italic; }
 .dec-branches { display: flex; flex-direction: column; gap: 10px; }
 .dec-branch {
@@ -3360,7 +3360,7 @@ const CSS = `
 .atj-h { font-weight: 700; color: #e8edf5; font-size: 14px; margin-bottom: 6px; }
 .atj-explain { font-size: 13px; color: #cbd5e1; line-height: 1.55; }
 .atj-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.atj-jp { font-family: 'Noto Serif JP', serif; font-size: 26px; color: #f472b6; line-height: 1.1; }
+.atj-jp { font-family: 'Noto Serif JP', serif; font-size: 26px; color: #84cc16; line-height: 1.1; }
 .atj-tail { font-size: 13px; color: #cbd5e1; font-style: italic; }
 .atj-arrow {
   text-align: center; font-size: 22px; color: #4ade80; font-weight: 700;
@@ -3371,11 +3371,11 @@ const CSS = `
   background: #0f1623; border: 1px solid #2a3a54; border-radius: 10px;
   padding: 10px; text-align: center;
 }
-.atj-glyph { font-family: 'Noto Serif JP', serif; font-size: 44px; color: #f472b6; line-height: 1; margin-bottom: 6px; }
+.atj-glyph { font-family: 'Noto Serif JP', serif; font-size: 44px; color: #84cc16; line-height: 1; margin-bottom: 6px; }
 .atj-read { font-size: 12.5px; color: #e8edf5; margin-bottom: 4px; }
 .atj-read .ksr-tag { margin-right: 6px; vertical-align: middle; }
 .atj-mean { font-size: 11px; color: #94a3b8; font-style: italic; }
-.atj-plus { font-size: 22px; color: #f472b6; font-weight: 700; }
+.atj-plus { font-size: 22px; color: #84cc16; font-weight: 700; }
 
 .atj-result {
   display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
@@ -3422,7 +3422,7 @@ const CSS = `
 .profile-empty { color: #94a3b8; font-size: 13.5px; background: #161e2e; border: 1px dashed #2a3a54; border-radius: 12px; padding: 14px 16px; line-height: 1.55; }
 .profile-help { font-size: 12px; color: #64748b; margin-top: 10px; line-height: 1.55; }
 .profile-blurb { color: #cbd5e1; margin: 0 0 12px; }
-.profile-blurb a { color: #f9a8d4; }
+.profile-blurb a { color: #bef264; }
 
 .hist-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
 .hist-item {
@@ -3432,8 +3432,8 @@ const CSS = `
   padding: 12px 14px; cursor: pointer;
   transition: border-color .15s, background .15s, transform .12s;
 }
-.hist-item:hover { border-color: #f472b6; background: #1c2740; transform: translateY(-1px); }
-.hist-jp { font-family: 'Noto Serif JP', serif; font-size: 28px; color: #f472b6; line-height: 1; text-align: center; }
+.hist-item:hover { border-color: #84cc16; background: #1c2740; transform: translateY(-1px); }
+.hist-jp { font-family: 'Noto Serif JP', serif; font-size: 28px; color: #84cc16; line-height: 1; text-align: center; }
 .hist-body { min-width: 0; }
 .hist-rom { font-weight: 600; color: #e8edf5; font-size: 15px; }
 .hist-short { font-size: 12.5px; color: #94a3b8; font-style: italic; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
@@ -3446,10 +3446,10 @@ const CSS = `
   background: #161e2e; color: #e8edf5; border: 1px solid #2a3a54;
   border-radius: 10px; padding: 10px 14px; outline: none;
 }
-.ps-input:focus { border-color: #f472b6; }
+.ps-input:focus { border-color: #84cc16; }
 .ps-btn {
   font-family: inherit; font-size: 14px; font-weight: 600;
-  background: #f472b6; color: #0f1623; border: none;
+  background: #84cc16; color: #0f1623; border: none;
   border-radius: 10px; padding: 0 18px; cursor: pointer; transition: filter .15s;
 }
 .ps-btn:hover:not(:disabled) { filter: brightness(1.08); }
@@ -3468,17 +3468,17 @@ const CSS = `
   padding: 4px 10px; border-radius: 999px; margin-bottom: 10px;
 }
 .mob-tag-android { background: rgba(74,222,128,.18); color: #4ade80; border: 1px solid rgba(74,222,128,.4); }
-.mob-tag-ios     { background: rgba(244,114,182,.18); color: #f472b6; border: 1px solid rgba(244,114,182,.4); }
+.mob-tag-ios     { background: rgba(132,204,22,.18); color: #84cc16; border: 1px solid rgba(132,204,22,.4); }
 .bmk-steps {
   margin: 14px 0 0; padding-left: 24px;
   display: flex; flex-direction: column; gap: 10px;
   font-size: 13.5px; color: #cbd5e1; line-height: 1.55;
 }
-.bmk-steps li::marker { color: #f472b6; font-weight: 700; }
+.bmk-steps li::marker { color: #84cc16; font-weight: 700; }
 .bmk-steps strong { color: #e8edf5; }
 .bmk-steps code {
   background: #0f1623; border: 1px solid #2a3a54; border-radius: 4px;
-  padding: 1px 6px; font-size: 12.5px; color: #f9a8d4;
+  padding: 1px 6px; font-size: 12.5px; color: #bef264;
 }
 
 @media (max-width: 560px) {
@@ -3513,10 +3513,10 @@ const CSS = `
 /* Quiz */
 .quiz-bar { display: flex; justify-content: space-between; font-size: 13.5px; color: #94a3b8; margin-bottom: 8px; }
 .quiz-progress { height: 6px; background: #161e2e; border-radius: 999px; overflow: hidden; margin-bottom: 28px; }
-.quiz-progress > div { height: 100%; background: #f472b6; transition: width .3s; }
+.quiz-progress > div { height: 100%; background: #84cc16; transition: width .3s; }
 .quiz-q { text-align: center; margin-bottom: 28px; }
 .quiz-q-label { font-size: 14px; color: #94a3b8; margin-bottom: 16px; }
-.quiz-glyph { font-family: 'Noto Serif JP', serif; font-size: 96px; line-height: 1; color: #f472b6; }
+.quiz-glyph { font-family: 'Noto Serif JP', serif; font-size: 96px; line-height: 1; color: #84cc16; }
 .quiz-word { font-family: 'DM Serif Display', serif; font-size: 34px; color: #e8edf5; max-width: 480px; margin: 0 auto; }
 .quiz-q-sub { font-size: 14px; color: #64748b; margin-top: 10px; }
 .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
@@ -3526,7 +3526,7 @@ const CSS = `
   padding: 18px 16px; cursor: pointer; transition: all .15s; text-align: center;
 }
 .quiz-opt.glyph { font-family: 'Noto Serif JP', serif; font-size: 40px; }
-.quiz-opt:hover:not(:disabled) { border-color: #f472b6; }
+.quiz-opt:hover:not(:disabled) { border-color: #84cc16; }
 .quiz-opt.correct { border-color: #4ade80; background: rgba(74,222,128,.12); color: #4ade80; }
 .quiz-opt.wrong { border-color: #f87171; background: rgba(248,113,113,.12); color: #f87171; }
 .quiz-opt.dim { opacity: .4; }
@@ -3536,7 +3536,7 @@ const CSS = `
 @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
 
 .quiz-done { text-align: center; padding: 40px 0; }
-.quiz-score { font-family: 'DM Serif Display', serif; font-size: 56px; color: #f472b6; }
+.quiz-score { font-family: 'DM Serif Display', serif; font-size: 56px; color: #84cc16; }
 .quiz-pct { font-size: 20px; color: #94a3b8; margin-bottom: 8px; }
 .quiz-msg { font-size: 18px; color: #e8edf5; margin-bottom: 24px; }
 .quiz-done .search-btn { padding: 14px 32px; }
