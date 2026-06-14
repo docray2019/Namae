@@ -45,7 +45,11 @@ Si tu utilises l'un des termes ci-dessous dans n'importe quel champ texte (note,
   - gairaigo → « gairaigo (mots empruntés à une langue étrangère) »
 
 Évite le jargon non glosé. Préfère « les kanji ont été choisis pour leur son » à un « ateji » nu.
-   - "note" : explication pédagogique brève (1-2 phrases) sur le rôle de ce segment dans ce composé précis (sens, ambiguïté éventuelle, contexte historique).
+   - "note" : explication pédagogique brève (1-2 phrases) sur le rôle de ce segment dans ce composé précis (sens, ambiguïté éventuelle, contexte historique). Distingue CLAIREMENT la FONCTION du kanji dans CE nom précis — c'est l'élément le plus important de la note :
+      • SENS LITTÉRAL : le kanji apporte vraiment son sens du dictionnaire (ex. 北 « nord » dans 北海道 = vraiment « nord »).
+      • DÉCORATEUR DE CONTEXTE : le kanji ne signifie pas littéralement son sens-dictionnaire mais évoque une ambiance, une époque, un registre. Ex. 世 dans 世田谷 (Setagaya) : son sens-dictionnaire est « monde / génération », mais dans le toponyme il ne veut PAS dire « la rizière du monde » — il donne juste une coloration « ancien, hérité, traditionnel » au nom. Dis-le explicitement : « 世 ne porte pas son sens littéral de "monde" ici, c'est un décorateur qui donne au nom une teinte d'ancienneté ». Cas fréquent en toponymie japonaise.
+      • PHONÉTIQUE PUR (ateji) : kanji choisi seulement pour son son, sens hors sujet. Ex. 寿司 → su+shi, les sens "longévité" et "gouverner" sont sans rapport avec le poisson cru.
+      Quand tu as un doute (sens littéral vs décorateur vs phonétique), tranche et explique pourquoi.
 5. Sois honnête sur les ambiguïtés. Cas classique : 廿日市市 (Hatsukaichi-shi) contient deux 市 — le premier signifie « marché » (lecture ichi), le second « ville » au sens administratif (-shi). Si une telle ambiguïté existe, explique-la dans la note du segment concerné.
 6. "short_fr" : sens littéral global du nom en une phrase concise (ex. « la municipalité (-shi) du marché du 20 »).
 7. "etymology_fr" : 2 à 4 phrases d'explication étymologique et/ou historique en français accessible.

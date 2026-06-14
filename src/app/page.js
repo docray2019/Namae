@@ -645,8 +645,9 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onS
             <div className="share-row">
               <button
                 type="button"
-                className="share-btn"
-                onClick={async () => {
+                className="share-btn share-btn-attention"
+                onClick={async (e) => {
+                  e.currentTarget.classList.remove('share-btn-attention')
                   const text = buildShareText(data)
                   if (!text) return
                   try {
@@ -2750,6 +2751,35 @@ const CSS = `
   background: transparent; color: #f9a8d4; border: 1px solid rgba(244,114,182,.4); box-shadow: none;
 }
 .share-btn-secondary:hover { background: rgba(244,114,182,.08); border-color: #f472b6; color: #f472b6; }
+
+/* Animation d'attention sur le bouton « Copier » : flashes de plus en plus
+   rapides pendant 5 s puis arrêt. Démarre dès l'apparition du bouton.
+   Stoppée au premier clic (la classe est retirée dans onClick). */
+.share-btn-attention {
+  animation: copy-pulse 5s ease-in 1 forwards;
+}
+@keyframes copy-pulse {
+  0%   { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
+  4%   { box-shadow: 0 0 28px rgba(244,114,182,.95); transform: scale(1.06); }
+  10%  { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
+  22%  { box-shadow: 0 0 28px rgba(244,114,182,.95); transform: scale(1.06); }
+  30%  { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
+  40%  { box-shadow: 0 0 28px rgba(244,114,182,.95); transform: scale(1.06); }
+  47%  { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
+  55%  { box-shadow: 0 0 28px rgba(244,114,182,.95); transform: scale(1.06); }
+  61%  { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
+  68%  { box-shadow: 0 0 28px rgba(244,114,182,.95); transform: scale(1.06); }
+  73%  { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
+  79%  { box-shadow: 0 0 28px rgba(244,114,182,.95); transform: scale(1.06); }
+  83%  { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
+  88%  { box-shadow: 0 0 28px rgba(244,114,182,.95); transform: scale(1.06); }
+  91%  { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
+  95%  { box-shadow: 0 0 28px rgba(244,114,182,.95); transform: scale(1.06); }
+  98%  { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
+  100% { box-shadow: 0 4px 12px rgba(244,114,182,.25); transform: scale(1); }
+}
+.share-btn-attention:hover { animation: none; }
+@media (prefers-reduced-motion: reduce) { .share-btn-attention { animation: none; } }
 .ai-block { margin-bottom: 24px; }
 .ai-prose { font-size: 14.5px; color: #e8edf5; line-height: 1.65; margin: 0; }
 .ai-loading {
