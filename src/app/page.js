@@ -1808,18 +1808,14 @@ function Profile({ onAnalyze, historyTick }) {
   const [psUsername, setPsUsername] = useState('')
   const [psState, setPsState] = useState({ loading: false, data: null, error: null })
 
-  // Bookmarklet « Analyser sur Namae » à glisser dans la barre de favoris.
-  // Quand l'utilisateur est sur une page Google Maps avec un lieu sélectionné,
-  // cliquer le bouton ouvre Namae avec le titre de la page (= libellé du header
-  // Maps) + l'URL courante. Le useEffect du Share Target côté Namae extrait
-  // ensuite le nom et lance l'analyse.
-  const bmkAnchorRef = useRef(null)
+  // Détection plateforme pour adapter les instructions Maps → Namae.
+  const [platform, setPlatform] = useState('android')
   useEffect(() => {
-    if (typeof window === 'undefined' || !bmkAnchorRef.current) return
-    const origin = window.location.origin
-    // eslint-disable-next-line no-script-url
-    const code = `javascript:(function(){var u=location.href,t=document.title.replace(/\\s*[-—–]\\s*Google\\s*(マップ|Maps?)\\s*$/i,'').trim();if(!/google\\.[^/]+\\/maps|maps\\.app\\.goo\\.gl|maps\\.google\\./i.test(u)){alert('Bookmarklet Namae — \\u00e0 utiliser depuis Google Maps.');return}window.open('${origin}/?text='+encodeURIComponent((t?t+'\\n':'')+u),'_blank')})()`
-    bmkAnchorRef.current.setAttribute('href', code)
+    if (typeof navigator === 'undefined') return
+    const ua = navigator.userAgent || ''
+    if (/iPhone|iPad|iPod/i.test(ua)) setPlatform('ios')
+    else if (/Android/i.test(ua)) setPlatform('android')
+    else setPlatform('other')
   }, [])
 
   useEffect(() => { setHistory(loadHistory()) }, [historyTick])
@@ -1892,55 +1888,63 @@ function Profile({ onAnalyze, historyTick }) {
         </p>
       </section>
 
-      {/* ───── Bookmarklet Google Maps → Namae ───── */}
+      {/* ───── Mobile : Maps app → Namae ───── */}
       <section className="profile-section">
-        <h3 className="readings-h">📍 Depuis Google Maps (desktop)</h3>
+        <h3 className="readings-h">📱 Depuis Google Maps sur mobile</h3>
         <p className="profile-blurb">
-          Tu cherches un lieu sur <a href="https://maps.google.com" target="_blank" rel="noreferrer">Google Maps</a>,
-          tu sélectionnes le bon item dans la liste — le libellé apparaît dans le header / bandeau de
-          détail. Un bookmarklet bien placé te ramène d’<strong>un seul clic</strong> sur Namae avec
-          ce libellé prêt à analyser.
+          Le flux le plus direct : tu trouves un lieu dans l’app Google Maps, tu le partages,
+          Namae apparaît dans la liste de partage et reçoit le nom — l’analyse étymologique
+          se lance toute seule.
         </p>
 
-        <div className="bmk-grab">
-          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-          <a
-            ref={bmkAnchorRef}
-            className="bmk-btn"
-            draggable="true"
-            onClick={(e) => { e.preventDefault(); alert("Glisse ce bouton dans ta barre de favoris — ne le clique pas ici. Une fois installé, va sur Google Maps, choisis ton lieu, puis clique le bookmarklet depuis la barre."); }}
-            title="Glisse-moi dans la barre de favoris"
-          >
-            📍 Analyser sur Namae
-          </a>
-          <div className="bmk-hint">↑ glisse ce bouton dans ta barre de favoris</div>
-        </div>
-
-        <ol className="bmk-steps">
-          <li>
-            <strong>Installation (une fois)</strong> — affiche ta barre de favoris (Ctrl/Cmd + Maj + B),
-            puis fais glisser le bouton rose ci-dessus dedans.
-          </li>
-          <li>
-            <strong>Usage</strong> — sur n’importe quelle page <code>maps.google.com</code> ou
-            <code>maps.app.goo.gl</code>, recherche un lieu et clique sur le bon résultat dans la liste.
-          </li>
-          <li>
-            <strong>Bascule</strong> — clique le bookmarklet dans ta barre. Le titre courant de la page
-            Maps (= le libellé du header) est transmis à Namae, qui lance l’analyse étymologique
-            dans un nouvel onglet.
-          </li>
-        </ol>
-        <p className="profile-help">
-          Limite navigateur : on ne peut pas mettre un bouton à l’intérieur de l’iframe Maps elle-même
-          (sandboxe cross-origin de Google). Le bookmarklet contourne ça en s’exécutant côté Maps,
-          dans ton navigateur. Aucun envoi de données vers nos serveurs : c’est juste une redirection
-          vers Namae avec le titre dans l’URL.
-        </p>
-        <p className="profile-help">
-          🤳 <strong>Sur mobile</strong> : utilise plutôt le partage natif. Dans l’app Maps Android,
-          <em> Partager → Namae</em> arrive directement à la fiche étymologique (PWA installée).
-        </p>
+        {platform !== 'ios' ? (
+          <>
+            <div className="mob-tag mob-tag-android">🤖 Android (Chrome)</div>
+            <ol className="bmk-steps">
+              <li>
+                <strong>Installe Namae comme app (une fois)</strong> — depuis cette page dans Chrome :
+                menu <code>⋮</code> en haut à droite → <strong>Installer l’application</strong>
+                (ou « Ajouter à l’écran d’accueil »). L’icône 名 apparaît avec tes autres apps.
+              </li>
+              <li>
+                <strong>Cherche un lieu dans l’app Maps</strong> — tape les premières lettres, choisis
+                le bon item dans les propositions ; sa fiche s’affiche en bas de l’écran.
+              </li>
+              <li>
+                <strong>Bouton Partager</strong> de la fiche du lieu → la share sheet d’Android s’ouvre
+                → <strong>tape sur Namae</strong>. L’app s’ouvre directement sur l’analyse étymologique.
+              </li>
+            </ol>
+            <p className="profile-help">
+              Si Namae n’apparaît pas dans la share sheet, c’est qu’elle n’est pas encore installée
+              comme PWA : refais l’étape 1, puis relance Android (ou redémarre Chrome).
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="mob-tag mob-tag-ios">🍎 iOS (Safari)</div>
+            <p className="profile-blurb">
+              iOS Safari ne propose pas (encore) le « Partager vers une app web » de Namae.
+              On contourne par <strong>copier-coller du lien Maps</strong>, c’est rapide :
+            </p>
+            <ol className="bmk-steps">
+              <li>
+                <strong>Dans l’app Maps</strong> — sélectionne ton lieu, appuie sur <strong>Partager</strong> →
+                <strong> Copier le lien</strong>.
+              </li>
+              <li>
+                <strong>Reviens dans Namae</strong> (cet onglet, ou bouton de retour),
+                onglet <strong>🔍 Explorer</strong>, et touche le bouton <strong>📋</strong>
+                à gauche du champ de recherche. Namae lit le lien, le résout côté serveur
+                et lance l’analyse.
+              </li>
+            </ol>
+            <p className="profile-help">
+              Astuce : ajoute Namae à l’écran d’accueil (Safari → <strong>Partager</strong> →
+              <strong> Sur l’écran d’accueil</strong>) pour l’ouvrir comme une app sans la barre Safari.
+            </p>
+          </>
+        )}
       </section>
 
       {/* ───── Import Polarsteps ───── */}
@@ -2945,25 +2949,14 @@ const CSS = `
 }
 .ps-summary { color: #cbd5e1; margin: 0 0 10px; }
 
-/* Bookmarklet Google Maps → Namae */
-.bmk-grab {
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
-  background: linear-gradient(180deg, rgba(244,114,182,.08) 0%, rgba(244,114,182,.02) 100%);
-  border: 1px dashed rgba(244,114,182,.45); border-radius: 14px;
-  padding: 20px 16px; margin: 14px 0;
+/* Guide Maps → Namae (mobile) */
+.mob-tag {
+  display: inline-block;
+  font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  padding: 4px 10px; border-radius: 999px; margin-bottom: 10px;
 }
-.bmk-btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-family: inherit; font-size: 15.5px; font-weight: 700;
-  background: #f472b6; color: #0f1623; text-decoration: none;
-  padding: 12px 22px; border-radius: 999px;
-  box-shadow: 0 6px 18px rgba(244,114,182,.30);
-  cursor: grab; user-select: none;
-  transition: filter .15s, transform .12s;
-}
-.bmk-btn:hover { filter: brightness(1.07); transform: translateY(-1px); }
-.bmk-btn:active { cursor: grabbing; transform: translateY(0); }
-.bmk-hint { font-size: 12.5px; color: #f9a8d4; font-style: italic; }
+.mob-tag-android { background: rgba(74,222,128,.18); color: #4ade80; border: 1px solid rgba(74,222,128,.4); }
+.mob-tag-ios     { background: rgba(244,114,182,.18); color: #f472b6; border: 1px solid rgba(244,114,182,.4); }
 .bmk-steps {
   margin: 14px 0 0; padding-left: 24px;
   display: flex; flex-direction: column; gap: 10px;
