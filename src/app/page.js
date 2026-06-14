@@ -382,6 +382,42 @@ function AiPartCard({ part, onShowReadings, onGoToReadingsSub }) {
 // ════════════════════════════════════════════════════════════════════════
 //  Mode EXPLORER
 // ════════════════════════════════════════════════════════════════════════
+// Construit un texte autonome à coller dans un commentaire Polarsteps (ou
+// n'importe quel champ texte de réseau social). Pensé pour être lisible
+// sans contexte par un voyageur qui suit un flux d'étapes : kanji + romaji
+// d'abord, sens littéral, décomposition par segments, étymologie courte,
+// anecdote si présente, signature Namae.
+//
+// Le format reste générique (pas de référence spécifique au japonais) pour
+// pouvoir l'étendre plus tard au coréen (hangul/hanja) ou au chinois.
+function buildShareText(data) {
+  if (!data) return ''
+  const lines = []
+  const title = [data.kanji, data.romaji].filter(Boolean).join(' — ')
+  if (title) lines.push(`🗾 ${title}`)
+  if (data.short_fr) lines.push(`« ${data.short_fr} »`)
+  lines.push('')
+
+  if (Array.isArray(data.parts) && data.parts.length) {
+    lines.push('Décomposition :')
+    for (const p of data.parts) {
+      const bits = []
+      if (p.text) bits.push(p.text)
+      const rom = p.role === 'suffix' && p.reading ? `-${p.reading}` : p.reading
+      if (rom) bits.push(`(${rom})`)
+      if (p.fr) bits.push(`« ${p.fr} »`)
+      lines.push('• ' + bits.join(' '))
+    }
+    lines.push('')
+  }
+
+  if (data.etymology_fr) { lines.push(data.etymology_fr); lines.push('') }
+  if (data.notable) { lines.push('💡 ' + data.notable); lines.push('') }
+
+  lines.push('— via Namae 名前 (namaejapan.vercel.app)')
+  return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim()
+}
+
 // Détecte une paire « lat, lng » saisie ou collée (avec espaces et virgule).
 function detectCoords(s) {
   const m = (s || '').match(/^\s*(-?\d{1,3}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)\s*$/)
@@ -605,6 +641,37 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onS
             </div>
 
             {data.short_fr && <p className="ai-short">{data.short_fr}</p>}
+
+            <div className="share-row">
+              <button
+                type="button"
+                className="share-btn"
+                onClick={async () => {
+                  const text = buildShareText(data)
+                  if (!text) return
+                  try {
+                    await navigator.clipboard.writeText(text)
+                    showToast?.('✓ Copié — colle dans Polarsteps ou ailleurs.')
+                  } catch {
+                    showToast?.('Copie impossible. Sélectionne le texte ci-dessous manuellement.')
+                  }
+                }}
+                title="Copie l'analyse en texte prêt à coller dans un commentaire Polarsteps"
+              >📋 Copier pour Polarsteps</button>
+              {typeof navigator !== 'undefined' && navigator.share && (
+                <button
+                  type="button"
+                  className="share-btn share-btn-secondary"
+                  onClick={async () => {
+                    const text = buildShareText(data)
+                    if (!text) return
+                    try { await navigator.share({ text, title: data.kanji ? `${data.kanji} — ${data.romaji || ''}`.trim() : 'Namae' }) }
+                    catch {}
+                  }}
+                  title="Ouvre le menu de partage natif (apps installées)"
+                >↗ Partager…</button>
+              )}
+            </div>
 
             <div className="segments">
               {(data.parts || []).map((p, i) => (
@@ -2667,7 +2734,22 @@ const CSS = `
 .alts { font-size: 12.5px; color: #94a3b8; margin: -4px 0 12px 8px; padding-left: 12px; border-left: 2px solid #2a3a54; }
 
 /* Blocs spécifiques à l'analyse IA */
-.ai-short { font-family: 'DM Serif Display', serif; color: #f9a8d4; font-size: 18px; line-height: 1.5; margin: 0 0 18px; font-style: italic; }
+.ai-short { font-family: 'DM Serif Display', serif; color: #f9a8d4; font-size: 18px; line-height: 1.5; margin: 0 0 14px; font-style: italic; }
+.share-row { display: flex; gap: 8px; margin: 0 0 16px; flex-wrap: wrap; }
+.share-btn {
+  font-family: inherit; font-size: 13px; font-weight: 600;
+  background: #f472b6; color: #0f1623; border: none;
+  padding: 8px 14px; border-radius: 999px; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(244,114,182,.25);
+  transition: filter .15s, transform .12s;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.share-btn:hover { filter: brightness(1.07); transform: translateY(-1px); }
+.share-btn:active { transform: translateY(0); }
+.share-btn-secondary {
+  background: transparent; color: #f9a8d4; border: 1px solid rgba(244,114,182,.4); box-shadow: none;
+}
+.share-btn-secondary:hover { background: rgba(244,114,182,.08); border-color: #f472b6; color: #f472b6; }
 .ai-block { margin-bottom: 24px; }
 .ai-prose { font-size: 14.5px; color: #e8edf5; line-height: 1.65; margin: 0; }
 .ai-loading {
