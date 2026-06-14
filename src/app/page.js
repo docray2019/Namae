@@ -1198,21 +1198,129 @@ function KatakanaPage() {
       </section>
 
       <section className="readings-section">
-        <h3 className="readings-h">D’autres conversions à reconnaître</h3>
+        <h3 className="readings-h">Trois mécanismes d’écriture à connaître</h3>
+
+        <h4 className="readings-h4">1. Le <em>sokuon</em> ッ — la « petite tsu » qui double la consonne</h4>
+        <p>
+          Un petit ツ écrit en taille réduite (<strong>ッ</strong>) ne se prononce PAS « tsu » :
+          il <strong>double la consonne suivante</strong> et provoque une <strong>micro-pause</strong>
+          (~100 ms de silence). C’est la façon japonaise d’écrire « tt », « kk », « ss », « pp »…
+        </p>
         <div className="rules-grid">
-          <div className="rule-row"><span className="rr-en">coffee</span><span className="rr-arrow">→</span><span className="rr-jp">コーヒー</span><span className="rr-rom">kōhī (les voyelles longues prennent ー)</span></div>
-          <div className="rule-row"><span className="rr-en">McDonald’s</span><span className="rr-arrow">→</span><span className="rr-jp">マクドナルド</span><span className="rr-rom">ma-ku-do-na-ru-do (insertions partout)</span></div>
-          <div className="rule-row"><span className="rr-en">computer</span><span className="rr-arrow">→</span><span className="rr-jp">コンピューター</span><span className="rr-rom">ko-n-pyū-tā</span></div>
-          <div className="rule-row"><span className="rr-en">hamburger</span><span className="rr-arrow">→</span><span className="rr-jp">ハンバーガー</span><span className="rr-rom">ha-n-bā-gā</span></div>
-          <div className="rule-row"><span className="rr-en">photograph</span><span className="rr-arrow">→</span><span className="rr-jp">フォトグラフ</span><span className="rr-rom">fo-to-gu-ra-fu</span></div>
-          <div className="rule-row"><span className="rr-en">élevator</span><span className="rr-arrow">→</span><span className="rr-jp">エレベーター</span><span className="rr-rom">e-re-bē-tā (L → R, V → B)</span></div>
-          <div className="rule-row"><span className="rr-en">bus</span><span className="rr-arrow">→</span><span className="rr-jp">バス</span><span className="rr-rom">ba-su (u final ≈ avalé : « bass »)</span></div>
-          <div className="rule-row"><span className="rr-en">desk</span><span className="rr-arrow">→</span><span className="rr-jp">デスク</span><span className="rr-rom">de-su-ku (u dévoisé entre s/k)</span></div>
+          <div className="rule-row"><span className="rr-en">cat</span><span className="rr-arrow">→</span><span className="rr-jp">キャット</span><span className="rr-rom">kya-<strong>tto</strong> (kya · stop · to)</span></div>
+          <div className="rule-row"><span className="rr-en">cookie</span><span className="rr-arrow">→</span><span className="rr-jp">クッキー</span><span className="rr-rom">ku-<strong>kkī</strong> (ku · stop · kī)</span></div>
+          <div className="rule-row"><span className="rr-en">app</span><span className="rr-arrow">→</span><span className="rr-jp">アップ</span><span className="rr-rom">a-<strong>ppu</strong></span></div>
+          <div className="rule-row"><span className="rr-en">message</span><span className="rr-arrow">→</span><span className="rr-jp">メッセージ</span><span className="rr-rom">me-<strong>ssē</strong>-ji</span></div>
+        </div>
+
+        <h4 className="readings-h4">2. Le <em>yōon</em> — combinaisons avec ャ ュ ョ</h4>
+        <p>
+          Un petit ャ, ュ ou ョ collé à une syllabe en -i (キ, シ, チ, ニ, ヒ, ミ, リ, ジ, ビ, ピ)
+          fusionne les deux en <strong>une seule syllabe palatalisée</strong>. C’est la façon
+          d’écrire les sons « kya, sho, nyu, ryu, jyo » qui n’ont pas de case propre dans le tableau.
+        </p>
+        <div className="rules-grid">
+          <div className="rule-row"><span className="rr-en">Tōkyō</span><span className="rr-arrow">→</span><span className="rr-jp">東京</span><span className="rr-rom">tō-<strong>kyō</strong> (キ + ョ = kyō)</span></div>
+          <div className="rule-row"><span className="rr-en">junior</span><span className="rr-arrow">→</span><span className="rr-jp">ジュニア</span><span className="rr-rom"><strong>ju</strong>-ni-a (ジ + ュ = ju)</span></div>
+          <div className="rule-row"><span className="rr-en">shop</span><span className="rr-arrow">→</span><span className="rr-jp">ショップ</span><span className="rr-rom"><strong>sho</strong>-ppu (シ + ョ = sho)</span></div>
+          <div className="rule-row"><span className="rr-en">news</span><span className="rr-arrow">→</span><span className="rr-jp">ニュース</span><span className="rr-rom"><strong>nyū</strong>-su</span></div>
+        </div>
+
+        <h4 className="readings-h4">3. Les innovations modernes — ティ, ファ, ヴ, ウィ…</h4>
+        <p>
+          Le tableau classique des kana n’a pas tous les sons étrangers. Pour rendre <em>ti</em>,
+          <em> fa</em>, <em>vu</em>, <em>wi</em>, etc., on combine une syllabe à voyelle silencieuse
+          (テ, フ, ウ, ヴ) avec une <strong>petite voyelle</strong> (ィ, ァ…) qui remplace la
+          voyelle d’origine. Innovation récente : on n’écrivait pas ces sons avant 1945.
+        </p>
+        <div className="rules-grid">
+          <div className="rule-row"><span className="rr-en">party</span><span className="rr-arrow">→</span><span className="rr-jp">パーティー</span><span className="rr-rom">pā-<strong>tī</strong> (テ + ィ = ti, son inexistant en jp natif)</span></div>
+          <div className="rule-row"><span className="rr-en">family</span><span className="rr-arrow">→</span><span className="rr-jp">ファミリー</span><span className="rr-rom"><strong>fa</strong>-mi-rī (フ + ァ = fa)</span></div>
+          <div className="rule-row"><span className="rr-en">violin</span><span className="rr-arrow">→</span><span className="rr-jp">ヴァイオリン</span><span className="rr-rom"><strong>va</strong>-i-o-ri-n (ヴ + ァ = va, marginal)</span></div>
+          <div className="rule-row"><span className="rr-en">whisky</span><span className="rr-arrow">→</span><span className="rr-jp">ウィスキー</span><span className="rr-rom"><strong>wi</strong>-su-kī (ウ + ィ = wi)</span></div>
+          <div className="rule-row"><span className="rr-en">check</span><span className="rr-arrow">→</span><span className="rr-jp">チェック</span><span className="rr-rom"><strong>che</strong>-kku (チ + ェ = che)</span></div>
         </div>
         <p className="kana-table-note">
-          Astuce : quand tu lis du katakana, prononce dans ta tête en supprimant les <em>u</em>
-          entre consonnes sourdes — tu retrouveras souvent le mot anglais d’origine.
+          Beaucoup de Japonais plus âgés continuent à prononcer ヴァ comme バ (va = ba),
+          ティ comme チ (ti = chi). Les innovations sont surtout visuelles à l’écrit.
         </p>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">Patterns récurrents en fin de mot</h3>
+        <p>Une fois ces règles connues, on reconnaît des familles entières d’emprunts :</p>
+        <div className="rules-grid">
+          <div className="rule-row"><span className="rr-en">-er, -or, -ar</span><span className="rr-arrow">→</span><span className="rr-jp">ー (long ā)</span><span className="rr-rom">computer → コンピュータ<strong>ー</strong>, doctor → ドクタ<strong>ー</strong></span></div>
+          <div className="rule-row"><span className="rr-en">-y final</span><span className="rr-arrow">→</span><span className="rr-jp">ー (long ī)</span><span className="rr-rom">party → パーティ<strong>ー</strong>, coffee → コーヒ<strong>ー</strong></span></div>
+          <div className="rule-row"><span className="rr-en">-tion</span><span className="rr-arrow">→</span><span className="rr-jp">ション (shon)</span><span className="rr-rom">station → ステー<strong>ション</strong>, action → アク<strong>ション</strong></span></div>
+          <div className="rule-row"><span className="rr-en">consonne + <em>l</em></span><span className="rr-arrow">→</span><span className="rr-jp">ル + voyelle</span><span className="rr-rom">apple → アップ<strong>ル</strong>, table → テーブ<strong>ル</strong></span></div>
+          <div className="rule-row"><span className="rr-en">-ng final</span><span className="rr-arrow">→</span><span className="rr-jp">ング (n-gu)</span><span className="rr-rom">parking → パーキ<strong>ング</strong>, ranking → ラ<strong>ンキング</strong></span></div>
+          <div className="rule-row"><span className="rr-en">th-</span><span className="rr-arrow">→</span><span className="rr-jp">サ/ザ ligne</span><span className="rr-rom">three → <strong>ス</strong>リー, that → <strong>ザ</strong>ット</span></div>
+          <div className="rule-row"><span className="rr-en">v-</span><span className="rr-arrow">→</span><span className="rr-jp">B (ou ヴ rare)</span><span className="rr-rom">vitamin → <strong>ビ</strong>タミン, Vienna → <strong>ウィ</strong>ーン (cas spécial)</span></div>
+          <div className="rule-row"><span className="rr-en">silent <em>e</em> final</span><span className="rr-arrow">→</span><span className="rr-jp">ignoré</span><span className="rr-rom">cake → ケーキ (pas ケーケ), bike → バイク</span></div>
+        </div>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">Quelques règles phonétiques générales du japonais</h3>
+        <p>
+          Pas spécifiques aux emprunts, mais essentielles à connaître pour bien
+          prononcer n’importe quoi en japonais — toponymes inclus.
+        </p>
+        <ul className="rules-list">
+          <li>
+            <strong>Tout est en syllabes ouvertes</strong> (consonne + voyelle, sauf le ん/ン
+            final). Chaque syllabe a la <strong>même durée</strong> — c’est ce qui donne au
+            japonais sa cadence régulière. Tōkyō = <em>tō-kyō</em> en 2 mores longues, pas en
+            1 ou 3 syllabes anglaises.
+          </li>
+          <li>
+            <strong>Le <em>i</em> s’efface aussi</strong> (pas seulement le u). Entre deux
+            consonnes sourdes, il est chuchoté de la même façon. Ex. 北 (<em>kita</em>) se
+            prononce souvent « kta », 試食 (<em>shishoku</em>, dégustation) ≈ « shshoku ».
+          </li>
+          <li>
+            <strong>Les voyelles ne se contractent jamais</strong>. Quand tu lis aiueo
+            (あいうえお), chacune se prononce distinctement. <em>Ai</em> dans <em>Saitama</em>
+            = sa-i-ta-ma, pas « sè ». Idem pour Hokkaidō = <em>ho-k-ka-i-dō</em>.
+          </li>
+          <li>
+            <strong>Les voyelles longues comptent double</strong>. <em>ō</em> et <em>oo</em>
+            sont deux mores, pas une. La différence entre 主人 (<em>shujin</em>, mari) et
+            集人 (rare) ou entre <em>ojisan</em> (oncle) et <em>ojīsan</em> (grand-père) est
+            essentielle — c’est la longueur de la voyelle qui distingue les mots.
+          </li>
+          <li>
+            <strong>L’accent est dans la hauteur, pas dans l’intensité</strong>. Là où le
+            français accentue par l’intensité (« téLÉphone »), le japonais fait monter ou
+            descendre le ton. <em>Hashi</em> peut être 箸 « baguettes » ou 橋 « pont » selon
+            que le ton monte sur la 1re ou la 2e mora — même romanisation, sens différent.
+          </li>
+          <li>
+            <strong>R japonais ≠ R français/anglais</strong>. C’est un son entre le R, le L et
+            le D, fait en tapotant brièvement le palais avec le bout de la langue. Plus proche
+            du R espagnol simple (« pero ») que de notre R guttural.
+          </li>
+          <li>
+            <strong>Le <em>fu</em> est entre F et H</strong>. フ se prononce en soufflant entre
+            les lèvres rapprochées (pas en mordant la lèvre inférieure comme le F français).
+            D’où des transcriptions hésitantes : Fuji ou Huji, futon ou hutton.
+          </li>
+        </ul>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">Astuce de lecture (récap)</h3>
+        <ol className="bmk-steps">
+          <li><strong>Identifie les ッ</strong> (petite tsu) — micro-pause + double consonne.</li>
+          <li><strong>Repère les yōon</strong> ャュョ collés à -i — fusionne en une syllabe.</li>
+          <li><strong>Avale les u et i</strong> entre deux consonnes sourdes (k/s/sh/t/ts/ch/h/f/p).</li>
+          <li><strong>Cherche le mot anglais</strong> en supprimant ces voyelles muettes — souvent évident.</li>
+          <li>
+            Exemple complet : <span className="rr-jp">アイスクリーム</span> = a-i-su-ku-rī-mu →
+            avale les u entre s/k et k/r → « ais-krīm » → <em>ice cream</em>. 🍨
+          </li>
+        </ol>
       </section>
     </>
   )
