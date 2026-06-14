@@ -1808,6 +1808,20 @@ function Profile({ onAnalyze, historyTick }) {
   const [psUsername, setPsUsername] = useState('')
   const [psState, setPsState] = useState({ loading: false, data: null, error: null })
 
+  // Bookmarklet « Analyser sur Namae » à glisser dans la barre de favoris.
+  // Quand l'utilisateur est sur une page Google Maps avec un lieu sélectionné,
+  // cliquer le bouton ouvre Namae avec le titre de la page (= libellé du header
+  // Maps) + l'URL courante. Le useEffect du Share Target côté Namae extrait
+  // ensuite le nom et lance l'analyse.
+  const bmkAnchorRef = useRef(null)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !bmkAnchorRef.current) return
+    const origin = window.location.origin
+    // eslint-disable-next-line no-script-url
+    const code = `javascript:(function(){var u=location.href,t=document.title.replace(/\\s*[-—–]\\s*Google\\s*(マップ|Maps?)\\s*$/i,'').trim();if(!/google\\.[^/]+\\/maps|maps\\.app\\.goo\\.gl|maps\\.google\\./i.test(u)){alert('Bookmarklet Namae — \\u00e0 utiliser depuis Google Maps.');return}window.open('${origin}/?text='+encodeURIComponent((t?t+'\\n':'')+u),'_blank')})()`
+    bmkAnchorRef.current.setAttribute('href', code)
+  }, [])
+
   useEffect(() => { setHistory(loadHistory()) }, [historyTick])
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -1875,6 +1889,57 @@ function Profile({ onAnalyze, historyTick }) {
         <p className="profile-help">
           L’historique est stocké uniquement <strong>sur ton appareil</strong> (localStorage du navigateur).
           Aucun envoi serveur, aucun compte requis.
+        </p>
+      </section>
+
+      {/* ───── Bookmarklet Google Maps → Namae ───── */}
+      <section className="profile-section">
+        <h3 className="readings-h">📍 Depuis Google Maps (desktop)</h3>
+        <p className="profile-blurb">
+          Tu cherches un lieu sur <a href="https://maps.google.com" target="_blank" rel="noreferrer">Google Maps</a>,
+          tu sélectionnes le bon item dans la liste — le libellé apparaît dans le header / bandeau de
+          détail. Un bookmarklet bien placé te ramène d’<strong>un seul clic</strong> sur Namae avec
+          ce libellé prêt à analyser.
+        </p>
+
+        <div className="bmk-grab">
+          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+          <a
+            ref={bmkAnchorRef}
+            className="bmk-btn"
+            draggable="true"
+            onClick={(e) => { e.preventDefault(); alert("Glisse ce bouton dans ta barre de favoris — ne le clique pas ici. Une fois installé, va sur Google Maps, choisis ton lieu, puis clique le bookmarklet depuis la barre."); }}
+            title="Glisse-moi dans la barre de favoris"
+          >
+            📍 Analyser sur Namae
+          </a>
+          <div className="bmk-hint">↑ glisse ce bouton dans ta barre de favoris</div>
+        </div>
+
+        <ol className="bmk-steps">
+          <li>
+            <strong>Installation (une fois)</strong> — affiche ta barre de favoris (Ctrl/Cmd + Maj + B),
+            puis fais glisser le bouton rose ci-dessus dedans.
+          </li>
+          <li>
+            <strong>Usage</strong> — sur n’importe quelle page <code>maps.google.com</code> ou
+            <code>maps.app.goo.gl</code>, recherche un lieu et clique sur le bon résultat dans la liste.
+          </li>
+          <li>
+            <strong>Bascule</strong> — clique le bookmarklet dans ta barre. Le titre courant de la page
+            Maps (= le libellé du header) est transmis à Namae, qui lance l’analyse étymologique
+            dans un nouvel onglet.
+          </li>
+        </ol>
+        <p className="profile-help">
+          Limite navigateur : on ne peut pas mettre un bouton à l’intérieur de l’iframe Maps elle-même
+          (sandboxe cross-origin de Google). Le bookmarklet contourne ça en s’exécutant côté Maps,
+          dans ton navigateur. Aucun envoi de données vers nos serveurs : c’est juste une redirection
+          vers Namae avec le titre dans l’URL.
+        </p>
+        <p className="profile-help">
+          🤳 <strong>Sur mobile</strong> : utilise plutôt le partage natif. Dans l’app Maps Android,
+          <em> Partager → Namae</em> arrive directement à la fiche étymologique (PWA installée).
         </p>
       </section>
 
@@ -2879,6 +2944,37 @@ const CSS = `
   padding: 10px 14px; font-size: 13.5px; margin-bottom: 12px;
 }
 .ps-summary { color: #cbd5e1; margin: 0 0 10px; }
+
+/* Bookmarklet Google Maps → Namae */
+.bmk-grab {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  background: linear-gradient(180deg, rgba(244,114,182,.08) 0%, rgba(244,114,182,.02) 100%);
+  border: 1px dashed rgba(244,114,182,.45); border-radius: 14px;
+  padding: 20px 16px; margin: 14px 0;
+}
+.bmk-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: inherit; font-size: 15.5px; font-weight: 700;
+  background: #f472b6; color: #0f1623; text-decoration: none;
+  padding: 12px 22px; border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(244,114,182,.30);
+  cursor: grab; user-select: none;
+  transition: filter .15s, transform .12s;
+}
+.bmk-btn:hover { filter: brightness(1.07); transform: translateY(-1px); }
+.bmk-btn:active { cursor: grabbing; transform: translateY(0); }
+.bmk-hint { font-size: 12.5px; color: #f9a8d4; font-style: italic; }
+.bmk-steps {
+  margin: 14px 0 0; padding-left: 24px;
+  display: flex; flex-direction: column; gap: 10px;
+  font-size: 13.5px; color: #cbd5e1; line-height: 1.55;
+}
+.bmk-steps li::marker { color: #f472b6; font-weight: 700; }
+.bmk-steps strong { color: #e8edf5; }
+.bmk-steps code {
+  background: #0f1623; border: 1px solid #2a3a54; border-radius: 4px;
+  padding: 1px 6px; font-size: 12.5px; color: #f9a8d4;
+}
 
 @media (max-width: 560px) {
   .hist-item { grid-template-columns: 44px 1fr; }
