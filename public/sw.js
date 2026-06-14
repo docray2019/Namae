@@ -6,4 +6,14 @@
 
 self.addEventListener('install', () => self.skipWaiting())
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()))
-self.addEventListener('fetch', () => {})
+
+// Chrome considère le SW « installable » seulement s'il intercepte
+// effectivement les requêtes de navigation. On laisse passer la requête en
+// la rejouant via fetch() — pas de cache, juste un proxy transparent. Sans
+// ce handler, l'option « Installer l'application » n'apparaît pas dans le
+// menu Chrome Android.
+self.addEventListener('fetch', (event) => {
+  if (event.request.mode === 'navigate') {
+    event.respondWith(fetch(event.request))
+  }
+})
