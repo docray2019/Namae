@@ -23,7 +23,7 @@ Règles :
 
 1. Si on te donne seulement le nom en alphabet latin, identifie le kanji canonique du lieu réel et utilise-le.
 2. Si on te donne seulement le kanji, génère la romanisation Hepburn standard avec macrons : ō, ū, ē, ā (ex. Tōkyō, Ōsaka, Kyōto). N'utilise PAS la double voyelle (« Tokyo », « ou »).
-3. Découpe le nom en segments cohérents : préfixe(s), nom principal, suffixe(s) administratifs. Un segment peut être plusieurs kanji (ex. 廿日 « le 20 du mois ») ou un seul (市 « ville »). Respecte l'ordre des kanji.
+3. Découpe le nom en segments cohérents : préfixe(s), nom principal, suffixe(s) administratifs. Un segment peut être plusieurs kanji (ex. 廿日 « le 20 du mois ») ou un seul (市 « ville »). Respecte l'ordre des caractères. INCLUS DANS parts TOUS les caractères du nom, y compris les hiragana (particules grammaticales comme の, が, へ — ex. 丸の内 a 3 parts : 丸, の, 内) et les katakana (mots étrangers ou transcription ainoue — ex. 東京タワー a 3 parts : 東, 京, タワー). Une particule en hiragana est généralement un segment seul avec role="core" et une note expliquant son rôle grammatical. Un mot en katakana est un segment unique (ne le découpe pas caractère par caractère sauf si pédagogiquement utile).
 4. Pour chaque segment, fournis :
    - "text" : le ou les kanji du segment
    - "reading" : la lecture EFFECTIVE de ce segment DANS CE COMPOSÉ, en Hepburn avec macrons (pas la lecture isolée canonique du kanji)

@@ -160,6 +160,28 @@ const HAS_KANJI = /[㐀-鿿豈-﫿]/
 
 const ROLE_COLOR = { prefix: '#fb923c', core: '#f472b6', suffix: '#2dd4bf' }
 
+// Détecte le script japonais d'un segment (kanji, hiragana, katakana, ou
+// mélange). Retourne null si aucun script japonais n'est détecté.
+function detectScript(text) {
+  if (!text) return null
+  const k = HAS_KANJI.test(text)
+  const h = /[぀-ゟ]/.test(text)
+  const c = /[゠-ヿｦ-ﾟ]/.test(text)
+  const n = (k ? 1 : 0) + (h ? 1 : 0) + (c ? 1 : 0)
+  if (n > 1) return 'mixed'
+  if (k) return 'kanji'
+  if (h) return 'hiragana'
+  if (c) return 'katakana'
+  return null
+}
+
+const SCRIPT_BADGE = {
+  kanji:    { label: '漢字', fr: 'Kanji',    color: '#f472b6' },
+  hiragana: { label: 'ひら', fr: 'Hiragana', color: '#4ade80' },
+  katakana: { label: 'カタ', fr: 'Katakana', color: '#38bdf8' },
+  mixed:    { label: '混',   fr: 'Mixte',    color: '#fb923c' },
+}
+
 // Termes techniques rendus cliquables dans les textes renvoyés par Claude
 // (notes, reading_choice_fr…). Cliquer envoie vers la bonne sous-page de Lectures.
 const GLOSSARY = [
@@ -213,16 +235,27 @@ function Glossarized({ text, onGoTo }) {
 // Pastille compacte d'un segment renvoyé par l'IA (préfixe / nom principal / suffixe).
 // Les suffixes sont volontairement plus petits et badgés — ils ne portent pas
 // l'identité du lieu, juste sa fonction administrative ou topographique.
-function AiSegment({ part }) {
+function AiSegment({ part, onScriptClick }) {
   const color = ROLE_COLOR[part.role] || '#64748b'
   const isSuffix = part.role === 'suffix'
   const reading = isSuffix && part.reading ? `-${part.reading}` : part.reading
+  const script = detectScript(part.text)
+  const scriptBadge = script ? SCRIPT_BADGE[script] : null
   return (
     <div className={`seg ${isSuffix ? 'is-suffix' : ''}`} style={{ borderColor: color, ...(isSuffix ? { background: `${color}1a` } : null) }}>
       <div className="seg-role" style={{ color }}>{ROLE_LABEL[part.role] || part.role}</div>
       <div className="seg-kanji" style={{ color }}>{part.text}</div>
       <div className="seg-reading">{reading}</div>
       <div className="seg-fr">{part.fr}</div>
+      {scriptBadge && (
+        <button
+          type="button"
+          className="script-pill"
+          style={{ background: `${scriptBadge.color}22`, color: scriptBadge.color, borderColor: `${scriptBadge.color}55` }}
+          onClick={() => onScriptClick?.()}
+          title={`${scriptBadge.fr} — clique pour comprendre les trois écritures`}
+        >{scriptBadge.label}</button>
+      )}
     </div>
   )
 }
@@ -236,6 +269,8 @@ function AiPartCard({ part, onShowReadings, onGoToReadingsSub }) {
   const isSuffix = part.role === 'suffix'
   const reading = isSuffix && part.reading ? `-${part.reading}` : part.reading
   const hasReadings = part.kun || part.on
+  const script = detectScript(part.text)
+  const scriptBadge = script ? SCRIPT_BADGE[script] : null
   const [openExplain, setOpenExplain] = useState(null) // 'kun' | 'on' | null
   const toggle = (which) => setOpenExplain((cur) => (cur === which ? null : which))
   return (
@@ -245,6 +280,15 @@ function AiPartCard({ part, onShowReadings, onGoToReadingsSub }) {
         <div className="kcard-top">
           <span className="kcard-romaji">{reading}</span>
           <span className="kcard-cat" style={{ background: color }}>{ROLE_LABEL[part.role] || part.role}</span>
+          {scriptBadge && (
+            <button
+              type="button"
+              className="script-pill script-pill-card"
+              style={{ background: `${scriptBadge.color}22`, color: scriptBadge.color, borderColor: `${scriptBadge.color}55` }}
+              onClick={() => onGoToReadingsSub?.('scripts')}
+              title={`${scriptBadge.fr} — clique pour comprendre les trois écritures`}
+            >{scriptBadge.label}</button>
+          )}
         </div>
         <div className="kcard-fr">{part.fr}</div>
         {part.note && <div className="kcard-note"><Glossarized text={part.note} onGoTo={onGoToReadingsSub} /></div>}
@@ -380,7 +424,7 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onS
         setAnalysis({ loading: false, data, error: null })
         // Sauvegarde dans l'historique local (utilisé par l'onglet « Mon espace »).
         saveHistoryEntry(data)
-        onAnalyzed?.()
+        onAnalyzed?.(data)
       })
       .catch((err) => {
         if (err.name === 'AbortError') return
@@ -564,7 +608,7 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onS
 
             <div className="segments">
               {(data.parts || []).map((p, i) => (
-                <AiSegment key={i} part={p} />
+                <AiSegment key={i} part={p} onScriptClick={() => onGoToReadingsSub?.('scripts')} />
               ))}
             </div>
           </div>
@@ -785,12 +829,13 @@ const READINGS_SUBPAGES = [
   { id: 'kanji',     label: 'Kanji',       jp: '漢字' },
   { id: 'hiragana',  label: 'Hiragana',    jp: 'ひらがな' },
   { id: 'katakana',  label: 'Katakana',    jp: 'カタカナ' },
+  { id: 'scripts',   label: 'Les 3 mélangées', jp: '混' },
   { id: 'romaji',    label: 'Rōmaji',      jp: 'Aa' },
   { id: 'kunon',     label: 'Kun ↔ On',    jp: '訓・音' },
   { id: 'atejijuku', label: 'Ateji & Juku.', jp: '当て字・熟字訓' },
 ]
 
-function ReadingsExplainer({ sub, setSub }) {
+function ReadingsExplainer({ sub, setSub, currentParts }) {
   return (
     <div className="readings-page">
       <nav className="readings-subnav">
@@ -808,6 +853,7 @@ function ReadingsExplainer({ sub, setSub }) {
       {sub === 'kanji' && <KanjiPage onGoTo={setSub} />}
       {sub === 'hiragana' && <HiraganaPage />}
       {sub === 'katakana' && <KatakanaPage />}
+      {sub === 'scripts' && <ScriptsPage currentParts={currentParts} />}
       {sub === 'romaji' && <RomajiPage />}
       {sub === 'kunon' && <KunOnPage onGoTo={setSub} />}
       {sub === 'atejijuku' && <AtejiJukujikunPage />}
@@ -1225,6 +1271,185 @@ function AtejiJukujikunPage() {
           C’est pour ça que la règle « kanji seul = kun, deux kanji = on » ne marche pas pour
           les toponymes anciens. Le nom préexiste — les kanji ne sont qu’un costume.
         </p>
+      </section>
+    </>
+  )
+}
+
+// ── Sous-page : MÉLANGER LES TROIS ÉCRITURES ───────────────────────────
+// Exemple imposé pour illustrer le mélange dans un toponyme.
+const SCRIPTS_EXAMPLE = [
+  { text: '東', script: 'kanji',    role: 'core', reading: 'tō',  fr: 'est' },
+  { text: '京', script: 'kanji',    role: 'core', reading: 'kyō', fr: 'capitale' },
+  { text: 'タ', script: 'katakana', role: 'core', reading: 'ta',  fr: '' },
+  { text: 'ワ', script: 'katakana', role: 'core', reading: 'wa',  fr: '' },
+  { text: 'ー', script: 'katakana', role: 'core', reading: '(allonge)', fr: '' },
+]
+
+function ScriptsPage({ currentParts }) {
+  // On regarde si le lieu actuellement analysé mélange déjà les écritures.
+  // Si oui, on illustre la page avec ; sinon on utilise un exemple imposé.
+  const partsForExample = useMemo(() => {
+    if (!currentParts?.length) return null
+    const scripts = new Set(currentParts.map((p) => detectScript(p.text)).filter(Boolean))
+    if (scripts.size >= 2) return currentParts
+    return null
+  }, [currentParts])
+  const example = partsForExample || SCRIPTS_EXAMPLE
+  const exampleIsCurrent = !!partsForExample
+
+  return (
+    <>
+      <h2 className="readings-title">Mélanger les trois écritures <span className="readings-jp">混</span></h2>
+      <p className="readings-lede">
+        Le japonais écrit <strong>combine couramment trois systèmes</strong> dans la même phrase,
+        parfois dans le même mot : <span style={{ color: '#f472b6' }}><strong>kanji</strong></span>{' '}
+        pour le sens, <span style={{ color: '#4ade80' }}><strong>hiragana</strong></span> pour
+        la grammaire et les mots natifs, <span style={{ color: '#38bdf8' }}><strong>katakana</strong></span>{' '}
+        pour les mots venus d’ailleurs. Les toponymes japonais en sont une vitrine miniature.
+      </p>
+
+      <section className="readings-section">
+        <h3 className="readings-h">1. Les trois écritures côte à côte</h3>
+        <div className="scripts-grid">
+          <div className="script-card script-card-kanji">
+            <div className="script-card-label">漢字</div>
+            <div className="script-card-name">Kanji</div>
+            <div className="script-card-eg">山 川 海</div>
+            <div className="script-card-role">
+              <strong>Sens.</strong> Caractères importés du chinois, chacun porte un concept
+              (montagne, rivière, mer). Cœur lexical du japonais.
+            </div>
+          </div>
+          <div className="script-card script-card-hira">
+            <div className="script-card-label">ひら</div>
+            <div className="script-card-name">Hiragana</div>
+            <div className="script-card-eg">の が を に は</div>
+            <div className="script-card-role">
+              <strong>Grammaire et liant.</strong> Particules qui structurent la phrase,
+              terminaisons de verbes, mots japonais natifs sans kanji.
+            </div>
+          </div>
+          <div className="script-card script-card-kata">
+            <div className="script-card-label">カタ</div>
+            <div className="script-card-name">Katakana</div>
+            <div className="script-card-eg">タワー コーヒー パン</div>
+            <div className="script-card-role">
+              <strong>Mots étrangers.</strong> Emprunts (anglais, portugais, ainou),
+              onomatopées, noms de marques et de science. Anguleux, signal visuel fort.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">2. Comment les reconnaître à l’œil ?</h3>
+        <ul>
+          <li><strong>Kanji</strong> 漢 — dense, anguleux, souvent compact. Plein de petits traits qui se croisent.</li>
+          <li><strong>Hiragana</strong> ひ — rond, fluide, cursif. On dirait des dessins arrondis.</li>
+          <li><strong>Katakana</strong> カ — anguleux mais simple, beaucoup d’angles droits, peu de traits.</li>
+        </ul>
+        <div className="scripts-spot">
+          <div className="ss-row"><span className="ss-jp ss-kanji">海 山 川 京 東</span><span className="ss-tag" style={{ color: '#f472b6' }}>kanji</span></div>
+          <div className="ss-row"><span className="ss-jp ss-hira">の あ ま と が り</span><span className="ss-tag" style={{ color: '#4ade80' }}>hiragana</span></div>
+          <div className="ss-row"><span className="ss-jp ss-kata">タ ワ ー コ ヒ ー</span><span className="ss-tag" style={{ color: '#38bdf8' }}>katakana</span></div>
+        </div>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">3. Dans les noms de lieux</h3>
+        <p>La grande majorité des toponymes sont en kanji pur. Mais on rencontre régulièrement&nbsp;:</p>
+        <div className="toponym-grid">
+          <div className="toponym-card">
+            <div className="toponym-jp">丸<span style={{ color: '#4ade80' }}>の</span>内</div>
+            <div className="toponym-rom">Marunouchi</div>
+            <div className="toponym-rule" style={{ color: '#4ade80' }}>kanji + <em>hiragana</em> + kanji</div>
+            <div className="toponym-note">の est la particule « de » — « le dedans des douves ».</div>
+          </div>
+          <div className="toponym-card">
+            <div className="toponym-jp">紀<span style={{ color: '#4ade80' }}>の</span>川</div>
+            <div className="toponym-rom">Kinokawa</div>
+            <div className="toponym-rule" style={{ color: '#4ade80' }}>kanji + <em>hiragana</em> + kanji</div>
+            <div className="toponym-note">« la rivière de Ki » (ancienne province de Kii).</div>
+          </div>
+          <div className="toponym-card">
+            <div className="toponym-jp">東京<span style={{ color: '#38bdf8' }}>タワー</span></div>
+            <div className="toponym-rom">Tōkyō Tower</div>
+            <div className="toponym-rule" style={{ color: '#38bdf8' }}>kanji + <em>katakana</em></div>
+            <div className="toponym-note">« tour » est un emprunt à l’anglais → katakana.</div>
+          </div>
+          <div className="toponym-card">
+            <div className="toponym-jp" style={{ color: '#38bdf8' }}>ニセコ</div>
+            <div className="toponym-rom">Niseko</div>
+            <div className="toponym-rule" style={{ color: '#38bdf8' }}>katakana pur</div>
+            <div className="toponym-note">Nom d’origine ainoue, transcrit en katakana, comme pour beaucoup de toponymes de Hokkaidō.</div>
+          </div>
+          <div className="toponym-card">
+            <div className="toponym-jp" style={{ color: '#38bdf8' }}>ワッカナイ</div>
+            <div className="toponym-rom">Wakkanai</div>
+            <div className="toponym-rule" style={{ color: '#38bdf8' }}>katakana pur</div>
+            <div className="toponym-note">Ainou <em>yam-wakka-nay</em> « rivière à l’eau froide ».</div>
+          </div>
+          <div className="toponym-card">
+            <div className="toponym-jp" style={{ color: '#4ade80' }}>さいたま</div>
+            <div className="toponym-rom">Saitama</div>
+            <div className="toponym-rule" style={{ color: '#4ade80' }}>hiragana pur</div>
+            <div className="toponym-note">Préfecture, écrite en hiragana depuis 2001 — choix esthétique et accessible.</div>
+          </div>
+        </div>
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">4. {exampleIsCurrent ? 'Ton lieu actuel décortiqué' : 'Exemple imposé : 東京タワー'}</h3>
+        {!exampleIsCurrent && (
+          <p>
+            Le lieu que tu viens d’analyser est entièrement en kanji, donc on prend
+            <strong> 東京タワー (Tōkyō Tower)</strong> pour bien voir les deux systèmes coexister.
+          </p>
+        )}
+        {exampleIsCurrent && (
+          <p>
+            Le lieu mélange déjà plusieurs écritures — voici à quoi ressemble la décomposition
+            avec les badges de script.
+          </p>
+        )}
+        <div className="scripts-example">
+          {example.map((p, i) => {
+            const sc = detectScript(p.text)
+            const badge = sc ? SCRIPT_BADGE[sc] : null
+            return (
+              <div key={i} className="scripts-char">
+                <div className="sc-glyph" style={{ color: badge?.color || '#94a3b8' }}>{p.text}</div>
+                {p.reading && <div className="sc-rom">{p.reading}</div>}
+                {badge && (
+                  <div className="sc-tag" style={{ background: `${badge.color}22`, color: badge.color, borderColor: `${badge.color}55` }}>
+                    {badge.label}
+                  </div>
+                )}
+                {p.fr && <div className="sc-fr">{p.fr}</div>}
+              </div>
+            )
+          })}
+        </div>
+        {!exampleIsCurrent && (
+          <p className="scripts-coda">
+            東 et 京 sont des <strong>kanji</strong> (« est » + « capitale » → la capitale de l’Est).
+            タ ワ ー sont des <strong>katakana</strong> : ils transcrivent le mot anglais <em>tower</em>
+            avec l’allongeur ー pour la voyelle finale longue. Cette coexistence est totalement
+            normale en japonais moderne — chaque écriture fait son métier.
+          </p>
+        )}
+      </section>
+
+      <section className="readings-section">
+        <h3 className="readings-h">5. Mémo express</h3>
+        <ul className="memo-list">
+          <li>📐 <strong>Anguleux dense</strong> = kanji. Sens.</li>
+          <li>🌊 <strong>Rond fluide</strong> = hiragana. Grammaire et mots natifs.</li>
+          <li>⚡ <strong>Anguleux simple</strong> = katakana. Mots étrangers, onomatopées, marques.</li>
+          <li>🇯🇵 <strong>Dans un nom de lieu</strong>, voir un katakana = très probablement un mot étranger (tour, hôtel, gare branchée) ou un toponyme d’origine ainoue.</li>
+          <li>🇯🇵 <strong>Voir un hiragana isolé entre deux kanji</strong> = c’est presque toujours une particule grammaticale (の, が, へ) qui sert de liant.</li>
+        </ul>
       </section>
     </>
   )
@@ -1813,6 +2038,9 @@ export default function NamaePage() {
   // Sous-page courante de l'onglet Lectures (état levé pour permettre le
   // deep-linking depuis les liens du glossaire dans les analyses).
   const [readingsSub, setReadingsSub] = useState('kanji')
+  // Parts de la dernière analyse — réutilisés par la sous-page Scripts pour
+  // illustrer le mélange kanji / hiragana / katakana avec le lieu en cours.
+  const [lastParts, setLastParts] = useState(null)
   // Référence stable vers run(), pour que les handlers Leaflet (créés une seule
   // fois au montage) appellent toujours la dernière version.
   const runRef = useRef(null)
@@ -1915,8 +2143,8 @@ export default function NamaePage() {
         </nav>
 
         <main className="main">
-          {tab === 'explore' && <Explorer query={query} setQuery={setQuery} submitted={submitted} submittedLatin={submittedLatin} run={run} runRef={runRef} onShowReadings={() => setTab('readings')} onAnalyzed={() => setHistoryTick((t) => t + 1)} showToast={showToast} onGoToReadingsSub={(sub) => { setReadingsSub(sub); setTab('readings') }} />}
-          {tab === 'readings' && <ReadingsExplainer sub={readingsSub} setSub={setReadingsSub} />}
+          {tab === 'explore' && <Explorer query={query} setQuery={setQuery} submitted={submitted} submittedLatin={submittedLatin} run={run} runRef={runRef} onShowReadings={() => setTab('readings')} onAnalyzed={(data) => { setHistoryTick((t) => t + 1); if (data?.parts) setLastParts(data.parts) }} showToast={showToast} onGoToReadingsSub={(sub) => { setReadingsSub(sub); setTab('readings') }} />}
+          {tab === 'readings' && <ReadingsExplainer sub={readingsSub} setSub={setReadingsSub} currentParts={lastParts} />}
           {tab === 'learn' && <Learn />}
           {tab === 'quiz' && <Quiz />}
           {tab === 'profile' && <Profile historyTick={historyTick} onAnalyze={(ja, en) => { setTab('explore'); runRef.current?.(ja || en, en || null) }} />}
@@ -2489,6 +2717,70 @@ const CSS = `
 .toponym-card-irr .toponym-rule { color: #fb923c; }
 .toponym-card-rev .toponym-rule { color: #38bdf8; }
 .toponym-note { font-size: 11.5px; color: #94a3b8; font-style: italic; margin-top: 4px; }
+
+/* Badge script (漢字 / ひら / カタ) sur les segments et fiches */
+.script-pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: 'Noto Serif JP', serif; font-size: 10.5px; font-weight: 700;
+  border: 1px solid; padding: 2px 7px; border-radius: 999px;
+  margin-left: 6px; cursor: pointer;
+  transition: filter .12s, transform .12s;
+}
+.script-pill:hover { filter: brightness(1.15); transform: translateY(-1px); }
+.seg .script-pill { margin: 6px auto 0; display: inline-flex; }
+.script-pill-card { vertical-align: middle; }
+
+/* Page MÉLANGER LES TROIS ÉCRITURES */
+.scripts-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px; margin: 14px 0;
+}
+.script-card {
+  background: #161e2e; border: 1px solid #2a3a54; border-radius: 14px;
+  padding: 14px 16px; text-align: center;
+}
+.script-card-kanji { border-left: 4px solid #f472b6; }
+.script-card-hira  { border-left: 4px solid #4ade80; }
+.script-card-kata  { border-left: 4px solid #38bdf8; }
+.script-card-label { font-family: 'Noto Serif JP', serif; font-size: 28px; line-height: 1; margin-bottom: 4px; }
+.script-card-kanji .script-card-label { color: #f472b6; }
+.script-card-hira  .script-card-label { color: #4ade80; }
+.script-card-kata  .script-card-label { color: #38bdf8; }
+.script-card-name { font-weight: 700; font-size: 14.5px; color: #e8edf5; margin-bottom: 8px; }
+.script-card-eg { font-family: 'Noto Serif JP', serif; font-size: 22px; color: #e8edf5; margin: 4px 0 10px; line-height: 1.3; letter-spacing: 4px; }
+.script-card-role { font-size: 12.5px; color: #cbd5e1; line-height: 1.55; text-align: left; }
+
+.scripts-spot { background: #0f1623; border: 1px solid #2a3a54; border-radius: 12px; padding: 12px 14px; margin: 12px 0; }
+.ss-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px dashed #1c2740; }
+.ss-row:last-child { border-bottom: none; }
+.ss-jp { font-family: 'Noto Serif JP', serif; font-size: 22px; line-height: 1.2; letter-spacing: 4px; }
+.ss-kanji { color: #f472b6; }
+.ss-hira  { color: #4ade80; }
+.ss-kata  { color: #38bdf8; }
+.ss-tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+
+.scripts-example {
+  display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+  margin: 14px 0; padding: 14px;
+  background: #0f1623; border: 1px solid #2a3a54; border-radius: 12px;
+}
+.scripts-char {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  min-width: 64px; padding: 8px 10px;
+  background: #161e2e; border: 1px solid #2a3a54; border-radius: 10px;
+}
+.sc-glyph { font-family: 'Noto Serif JP', serif; font-size: 36px; line-height: 1; }
+.sc-rom { font-size: 12px; color: #cbd5e1; font-weight: 600; }
+.sc-tag {
+  font-family: 'Noto Serif JP', serif; font-size: 10.5px; font-weight: 700;
+  border: 1px solid; padding: 1px 6px; border-radius: 999px;
+}
+.sc-fr { font-size: 11px; color: #94a3b8; font-style: italic; }
+.scripts-coda {
+  background: rgba(244,114,182,.05); border-left: 3px solid #f472b6;
+  padding: 12px 14px; border-radius: 0 10px 10px 0;
+  font-size: 13.5px; color: #cbd5e1; line-height: 1.6; font-style: italic;
+}
 
 /* ═══ Schémas pédagogiques ════════════════════════════════════════════ */
 .schema {
