@@ -615,6 +615,57 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onS
 
   const data = analysis.data
 
+  // Autocomplétion Nominatim restreinte au Japon (gratuit, sans clé). On tape
+  // en latin → liste de propositions « kanji — Latin », clic pour analyser.
+  const [suggestions, setSuggestions] = useState([])
+  const [suggestOpen, setSuggestOpen] = useState(false)
+  const [suggestLoading, setSuggestLoading] = useState(false)
+
+  useEffect(() => {
+    const v = (query || '').trim()
+    // Pas d'autocomplétion sur les URL, coordonnées, ou requêtes trop courtes.
+    if (v.length < 2 || /^https?:\/\//i.test(v) || detectCoords(v)) {
+      setSuggestions([])
+      setSuggestLoading(false)
+      return
+    }
+    setSuggestLoading(true)
+    const ctrl = new AbortController()
+    const id = setTimeout(async () => {
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(v)}&format=jsonv2&namedetails=1&countrycodes=jp&accept-language=ja&limit=8`
+        const r = await fetch(url, { signal: ctrl.signal })
+        if (!r.ok) throw new Error('bad')
+        const data = await r.json()
+        const seen = new Set()
+        const items = []
+        for (const d of data) {
+          const nd = d.namedetails || {}
+          const ja = nd['name:ja'] || (d.name && HAS_KANJI.test(d.name) ? d.name : '')
+          const en = nd['name:en'] || nd['int_name'] || nd['name:rm'] || nd['alt_name'] || (d.name && !HAS_KANJI.test(d.name) ? d.name : '')
+          if (!ja && !en) continue
+          const dedup = (ja || '') + '|' + (en || '')
+          if (seen.has(dedup)) continue
+          seen.add(dedup)
+          items.push({ ja, en, full: d.display_name, key: d.place_id })
+        }
+        setSuggestions(items)
+      } catch (e) {
+        if (e.name !== 'AbortError') setSuggestions([])
+      } finally {
+        setSuggestLoading(false)
+      }
+    }, 400)
+    return () => { clearTimeout(id); ctrl.abort() }
+  }, [query])
+
+  function pickSuggestion(item) {
+    setSuggestOpen(false)
+    setQuery(item.ja || item.en || '')
+    if (item.ja) run(item.ja, item.en || null)
+    else run(item.en)
+  }
+
   // Soumet une valeur tapée / collée. Gère trois cas :
   //   • paire « lat, lng » → reverse-geocode Nominatim → analyse du nom trouvé
   //   • URL Maps           → run() la résoudra côté serveur via /api/resolve-maps
@@ -663,20 +714,45 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onS
           title="Coller depuis le presse-papiers et analyser"
           aria-label="Coller depuis le presse-papiers"
         >📋</button>
-        <input
-          type="text"
-          className="search-input"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && submitTyped(query)}
-          placeholder="Tokyo, 渋谷, https://maps.app.goo.gl/…, ou 35.66, 139.70"
-          autoComplete="off"
-          spellCheck="false"
-        />
+        <div className="search-input-wrap">
+          <input
+            type="text"
+            className="search-input"
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setSuggestOpen(true) }}
+            onFocus={() => setSuggestOpen(true)}
+            onBlur={() => setTimeout(() => setSuggestOpen(false), 160)}
+            onKeyDown={(e) => { if (e.key === 'Enter') { setSuggestOpen(false); submitTyped(query) } if (e.key === 'Escape') setSuggestOpen(false) }}
+            placeholder="Tape un nom (Tokyo, Shibuya, Kyōto…) — propositions automatiques"
+            autoComplete="off"
+            spellCheck="false"
+          />
+          {suggestOpen && (suggestLoading || suggestions.length > 0) && (
+            <ul className="autocomplete" role="listbox">
+              {suggestLoading && suggestions.length === 0 && (
+                <li className="ac-loading">Recherche…</li>
+              )}
+              {suggestions.map((item) => (
+                <li key={item.key}>
+                  <button
+                    type="button"
+                    className="ac-item"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => pickSuggestion(item)}
+                  >
+                    <span className="ac-jp">{item.ja || '—'}</span>
+                    {item.en && <span className="ac-en">{item.en}</span>}
+                    {item.full && <span className="ac-full">{item.full}</span>}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <button
           type="button"
           className="search-btn-mini"
-          onClick={() => submitTyped(query)}
+          onClick={() => { setSuggestOpen(false); submitTyped(query) }}
           disabled={!query.trim()}
         >Analyser</button>
       </div>
@@ -2078,6 +2154,29 @@ const CSS = `
 }
 .search-btn-mini:hover:not(:disabled) { filter: brightness(1.08); }
 .search-btn-mini:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Autocomplétion Nominatim (résultats Japon en JA + EN) */
+.search-input-wrap { flex: 1; min-width: 0; position: relative; }
+.search-input-wrap .search-input { width: 100%; }
+.autocomplete {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 50;
+  list-style: none; padding: 4px; margin: 0;
+  background: #161e2e; border: 1px solid #2a3a54; border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.45);
+  max-height: 340px; overflow-y: auto;
+}
+.ac-loading { padding: 10px 14px; font-size: 13px; color: #94a3b8; font-style: italic; }
+.ac-item {
+  width: 100%; text-align: left; display: flex; flex-direction: column; gap: 2px;
+  font-family: inherit;
+  background: transparent; color: #e8edf5; border: 1px solid transparent;
+  padding: 10px 12px; border-radius: 8px; cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.ac-item:hover, .ac-item:focus { background: #1c2740; border-color: #f472b6; outline: none; }
+.ac-jp { font-family: 'Noto Serif JP', serif; font-size: 17px; color: #f472b6; line-height: 1.2; }
+.ac-en { font-weight: 600; color: #e8edf5; font-size: 13.5px; }
+.ac-full { font-size: 11.5px; color: #94a3b8; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Sélecteur de lieu par carte (Leaflet + Nominatim) */
 .map-picker { position: relative; margin: 0 0 16px; }
