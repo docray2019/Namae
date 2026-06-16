@@ -434,6 +434,9 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onS
   // On envoie kanji + latin séparés quand on les a (typiquement depuis la carte
   // via Nominatim), sinon on devine d'après le script de l'entrée.
   const [analysis, setAnalysis] = useState({ loading: false, data: null, error: null })
+  // Incrémenté à chaque clic « Réessayer » → force le useEffect à refetcher
+  // sans changer submitted (utile sur les 500 transients d'Anthropic).
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     if (!submitted) { setAnalysis({ loading: false, data: null, error: null }); return }
@@ -467,7 +470,7 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onS
         setAnalysis({ loading: false, data: null, error: err.message || 'Erreur inconnue' })
       })
     return () => controller.abort()
-  }, [submitted, submittedLatin])
+  }, [submitted, submittedLatin, retryKey])
 
   const data = analysis.data
 
@@ -620,14 +623,39 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onS
         </div>
       )}
 
-      {analysis.error && (
-        <div className="card ai-error">
-          <strong>Erreur d’analyse</strong> — {analysis.error}
-          <div className="ai-error-hint">
-            Vérifie que <code>ANTHROPIC_API_KEY</code> est bien configurée dans Vercel → Settings → Environment Variables, puis réessaie.
+      {analysis.error && (() => {
+        const raw = String(analysis.error)
+        const isServerHiccup = /\b5\d\d\b|internal\s+server\s+error|overloaded|api_error|server_error/i.test(raw)
+        const isNoKey = /no_api_key|ANTHROPIC_API_KEY/i.test(raw)
+        const isRefusal = /refused|refusal/i.test(raw)
+        return (
+          <div className="card ai-error">
+            <strong>Erreur d’analyse</strong>
+            <div className="ai-error-msg">
+              {isServerHiccup
+                ? <>L’API d’Anthropic vient de tousser (erreur serveur transient). Pas de panique : c’est presque toujours résolu en quelques secondes par un nouvel essai.</>
+                : isNoKey
+                  ? <>La clé <code>ANTHROPIC_API_KEY</code> n’est pas configurée côté Vercel. Settings → Environment Variables → ajoute-la pour Production, puis re-déploie.</>
+                  : isRefusal
+                    ? <>Claude a refusé la requête (classifier de sécurité). Reformule ou essaie un autre lieu.</>
+                    : <>Détail technique : <code className="ai-error-raw">{raw.slice(0, 240)}</code></>}
+            </div>
+            <div className="ai-error-actions">
+              <button
+                type="button"
+                className="share-btn"
+                onClick={() => setRetryKey((k) => k + 1)}
+                disabled={analysis.loading}
+              >🔁 Réessayer</button>
+              {!isServerHiccup && !isNoKey && !isRefusal && (
+                <div className="ai-error-hint">
+                  Si ça persiste, vérifie <code>ANTHROPIC_API_KEY</code> dans Vercel → Settings → Environment Variables.
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {data && (
         <>
@@ -2798,6 +2826,9 @@ const CSS = `
 }
 .ai-error code { background: rgba(15,22,35,.6); padding: 1px 6px; border-radius: 4px; font-size: 12.5px; }
 .ai-error-hint { font-size: 12.5px; color: #94a3b8; margin-top: 8px; line-height: 1.5; }
+.ai-error-msg { font-size: 14px; color: #fcd34d; margin: 6px 0 12px; line-height: 1.55; }
+.ai-error-raw { font-family: 'DM Mono', monospace; font-size: 11.5px; background: rgba(15,22,35,.6); padding: 2px 6px; border-radius: 4px; word-break: break-all; }
+.ai-error-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
 /* Tableau kun/on dans la fiche détaillée. */
 .kcard-readings {

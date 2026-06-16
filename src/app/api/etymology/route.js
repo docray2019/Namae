@@ -167,6 +167,20 @@ export async function POST(request) {
       } : undefined,
     })
   } catch (err) {
+    // Détection des erreurs transientes côté Anthropic (déjà retentées 2x par
+    // le SDK, donc ici c'est un vrai souci) — on renvoie un message clair
+    // que l'UI affiche avec un bouton « Réessayer ».
+    const status = err?.status || err?.response?.status
+    const errType = err?.error?.type || err?.type
+    if (status === 529 || errType === 'overloaded_error') {
+      return Response.json({ error: 'overloaded', message: 'L’API Anthropic est surchargée. Réessaie dans quelques secondes.' }, { status: 503 })
+    }
+    if (status >= 500 || errType === 'api_error' || errType === 'internal_server_error') {
+      return Response.json({ error: 'server_error', message: 'Erreur serveur transient côté Anthropic.', detail: err?.message || String(err) }, { status: 502 })
+    }
+    if (status === 429 || errType === 'rate_limit_error') {
+      return Response.json({ error: 'rate_limited', message: 'Trop de requêtes en peu de temps. Attends 30 s.' }, { status: 429 })
+    }
     return Response.json({ error: 'api_error', message: err?.message || String(err) }, { status: 502 })
   }
 }
