@@ -24,14 +24,23 @@ function saveHistoryEntry(entry) {
   try {
     const list = loadHistory()
     const dedup = list.filter((e) => e.kanji !== entry.kanji)
-    dedup.unshift({
-      kanji: entry.kanji,
-      romaji: entry.romaji || null,
-      short_fr: entry.short_fr || null,
-      timestamp: Date.now(),
-    })
+    // On sauvegarde l'INTÉGRALITÉ de la réponse Opus (parts, etymology_fr,
+    // pedagogy_fr, analogy_fr, notable, kun/on par segment…) pour pouvoir
+    // ré-afficher la fiche depuis « Mon espace » sans relancer un appel API.
+    dedup.unshift({ ...entry, timestamp: Date.now() })
     window.localStorage.setItem(HISTORY_KEY, JSON.stringify(dedup.slice(0, HISTORY_MAX)))
   } catch {}
+}
+
+// Cherche dans l'historique local une entrée déjà analysée pour ce kanji.
+// Renvoie l'objet data complet si trouvé (avec parts), null sinon.
+function findHistoryEntry(kanji) {
+  if (!kanji || typeof window === 'undefined') return null
+  try {
+    const list = loadHistory()
+    const found = list.find((e) => e.kanji === kanji)
+    return found?.parts?.length ? found : null
+  } catch { return null }
 }
 
 function clearHistoryStorage() {
@@ -437,10 +446,33 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onS
   // Incrémenté à chaque clic « Réessayer » → force le useEffect à refetcher
   // sans changer submitted (utile sur les 500 transients d'Anthropic).
   const [retryKey, setRetryKey] = useState(0)
+  // Ref qui demande au useEffect de bypasser le cache pour le prochain run
+  // (utilisé par le bouton « Réessayer » : on veut un vrai re-fetch, pas
+  // re-servir la version mémorisée).
+  const skipCacheRef = useRef(false)
 
   useEffect(() => {
     if (!submitted) { setAnalysis({ loading: false, data: null, error: null }); return }
     const looksKanji = HAS_KANJI.test(submitted)
+
+    // 1) Tentative de servir depuis le cache local (« Mon espace »). On évite
+    //    ainsi un appel Opus payant pour un lieu déjà analysé. Sauf si le
+    //    bouton Réessayer a été cliqué (skipCacheRef = true).
+    const wantsFresh = skipCacheRef.current
+    skipCacheRef.current = false
+    if (!wantsFresh && looksKanji) {
+      const cached = findHistoryEntry(submitted)
+      if (cached) {
+        setAnalysis({ loading: false, data: cached, error: null })
+        // On bump quand même le timestamp pour faire remonter l'entrée en
+        // tête de liste (comportement « plus récente d'abord »).
+        saveHistoryEntry(cached)
+        onAnalyzed?.(cached)
+        return
+      }
+    }
+
+    // 2) Cache miss → appel API normal.
     const body = looksKanji
       ? { kanji: submitted, latin: submittedLatin || null }
       : { kanji: null, latin: submittedLatin || submitted }
@@ -644,7 +676,7 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onS
               <button
                 type="button"
                 className="share-btn"
-                onClick={() => setRetryKey((k) => k + 1)}
+                onClick={() => { skipCacheRef.current = true; setRetryKey((k) => k + 1) }}
                 disabled={analysis.loading}
               >🔁 Réessayer</button>
               {!isServerHiccup && !isNoKey && !isRefusal && (
@@ -669,6 +701,12 @@ function Explorer({ query, setQuery, submitted, submittedLatin, run, runRef, onS
             </div>
 
             {data.short_fr && <p className="ai-short">{data.short_fr}</p>}
+
+            {data.timestamp && data.timestamp < Date.now() - 1000 && (
+              <div className="cache-tag" title="Analyse récupérée de l’historique local — aucun appel API ne vient d’être lancé.">
+                ⚡ Servi depuis ton historique (analyse mémorisée localement)
+              </div>
+            )}
 
             <div className="share-row">
               <button
@@ -2779,6 +2817,13 @@ const CSS = `
   background: transparent; color: #bef264; border: 1px solid rgba(132,204,22,.4); box-shadow: none;
 }
 .share-btn-secondary:hover { background: rgba(132,204,22,.08); border-color: #84cc16; color: #84cc16; }
+.cache-tag {
+  display: inline-block;
+  font-size: 12px; color: #84cc16; font-weight: 600;
+  background: rgba(132,204,22,.10); border: 1px dashed rgba(132,204,22,.4);
+  padding: 4px 10px; border-radius: 999px;
+  margin: 0 0 12px;
+}
 
 /* Animation d'attention sur le bouton « Copier » : flashes de plus en plus
    rapides pendant 5 s puis arrêt. Démarre dès l'apparition du bouton.
